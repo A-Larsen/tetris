@@ -46,7 +46,8 @@ static SDL_Event event;
 static bool quit = false;
 static uint8_t peice = PEICE_T;
 static int color = -1;
-static uint8_t peice_count = 0;
+static uint8_t placedPeicesCount = 0;
+static PlacedPeice *placedPeices = NULL;
 
 static SDL_Color colors[] = {
     [COLOR_RED] = {.r = 255, .g = 0, .b = 0, .a = 255},
@@ -56,7 +57,6 @@ static SDL_Color colors[] = {
 
 // can adventually figure out the mazimum number of peices that could be
 // placed
-PlacedPeice *placedPeices = NULL;
 
 uint8_t tetris_tetrominos[7][8] = {
     [PEICE_I] = {0,0,0,0,
@@ -107,6 +107,7 @@ void tetris_getPeiceSize(uint8_t peice, Size *size) {
 void tetris_drawTetromino(SDL_Renderer *renderer, uint8_t peice,
                    SDL_Point position)
 {
+
     for (int i = 0; i < TETROMINOS_DATA_SIZE; ++i) {
         if (!tetris_tetrominos[peice][i]) continue;
         uint8_t x = i % PEICE_WIDTH;
@@ -132,8 +133,8 @@ void tetris_addToPlaced(uint8_t peice, SDL_Point position) {
         }
     }
 
-    uint8_t i = peice_count++;
-    placedPeices = realloc(placedPeices, sizeof(PlacedPeice) * peice_count);
+    uint8_t i = placedPeicesCount++;
+    placedPeices = realloc(placedPeices, sizeof(PlacedPeice) * placedPeicesCount);
     memcpy(&placedPeices[i].position, &position, sizeof(SDL_Point));
     memcpy(&placedPeices[i].color, &color, sizeof(uint8_t));
     memcpy(&placedPeices[i].peice, &peice, sizeof(uint8_t));
@@ -271,6 +272,11 @@ void tetris_callback(uint64_t frame) {
         } 
     }
 
+    for (uint8_t i = 0; i < placedPeicesCount; ++i) {
+        tetris_setColor(placedPeices[i].color);
+        tetris_drawTetromino(renderer, placedPeices[i].peice,
+        placedPeices[i].position);
+    }
 }
 
 void tetris_update(void (*callback)(uint64_t frame)) {
