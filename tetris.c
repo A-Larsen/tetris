@@ -48,7 +48,7 @@ static uint8_t placed_peices_count = 0;
 static PlacedPeice *placed_peices = NULL;
 static TTF_Font *font = NULL;
 static SDL_Texture *texture_lost_text = NULL;
-static uint8_t flip = 2;
+static uint8_t flip = 0;
 
 static SDL_Color colors[] = {
     [COLOR_RED] = {.r = 255, .g = 0, .b = 0, .a = 255},
