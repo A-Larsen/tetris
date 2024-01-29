@@ -122,9 +122,8 @@ bool tetris_collisionCheck(SDL_Point position, uint8_t peice) {
     uint8_t i = GET_PLACED_POSITION(position);
 
     if (position.x + size.w > ARENA_WIDTH  ||
-        point.y  + size.h > ARENA_HEIGHT ||
-        position.x < 0 ||
-        position.y + 2 > SCREEN_HEIGHT_PX / PEICE_SIZE ) {
+        position.y  + size.h > ARENA_HEIGHT ||
+        position.x < 0) {
         return true;
     }
 
@@ -230,7 +229,7 @@ void tetris_callback(uint64_t frame) {
         SDL_Point check = {.x = point.x, .y = point.y + 1};
 
         if (!tetris_collisionCheck(check, peice))  {
-                point.y++;
+            point.y++;
         } else if (doOnce) {
             printf("add to placed\n\n");
             tetris_addToPlaced(peice, point);
