@@ -165,11 +165,23 @@ bool tetris_collisionCheck(SDL_Point position, uint8_t peice) {
         return true;
     }
 
-    for (uint8_t i = position.x; i < position.x + PEICE_WIDTH; ++i) {
-        SDL_Point offset = {.x = i, .y = position.y};
-        uint8_t i = GET_PLACED_POSITION(offset);
-        return placed[i] || placed[i + ARENA_WIDTH];
-
+    /* for (uint8_t i = position.x; i < position.x + PEICE_WIDTH; ++i) { */
+    /*     SDL_Point offset = {.x = i, .y = position.y}; */
+    /*     uint8_t i = GET_PLACED_POSITION(offset); */
+    /*     return placed[i] || placed[i + ARENA_WIDTH]; */
+    /* } */
+    bool collide = false;
+    for (uint8_t i = 0; i < PEICE_WIDTH; ++i) {
+        SDL_Point offset = {.x = i + position.x, .y = position.y};
+        uint8_t top = GET_PLACED_POSITION(offset);
+        uint8_t bottom = top + ARENA_WIDTH;
+        if ((tetris_tetrominos[peice][i] && placed[top]) ||
+           (tetris_tetrominos[peice][i + PEICE_WIDTH] && placed[bottom])) {
+            return true;
+        }
+        /* peice[i + PEICE_WIDTH] */
+        /* uint8_t i = GET_PLACED_POSITION(offset); */
+        /* return placed[i] || placed[i + ARENA_WIDTH]; */
     }
 
     return false;
