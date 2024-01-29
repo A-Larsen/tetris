@@ -13,7 +13,7 @@
 #define PEICE_WIDTH 4
 #define PEICE_HEIGHT 2
 #define TETROMINOS_DATA_SIZE 8
-#define GET_PLACED_POSITION(pos) pos.y * ARENA_WIDTH + pos.x;
+/* #define GET_PLACED_POSITION(pos) pos.y * ARENA_WIDTH + pos.x; */
 #define PEICE_I 0
 #define PEICE_J 1
 #define PEICE_L 2
@@ -82,6 +82,10 @@ uint8_t tetris_tetrominos[7][8] = {
                  0,1,1,0},
 };
 
+uint8_t tetris_getPlacedPosition(SDL_Point pos) {
+    return pos.y * ARENA_WIDTH + pos.x;
+}
+
 void tetris_setColor(uint8_t color) {
     SDL_SetRenderDrawColor(renderer, colors[color].r, colors[color].g,
                            colors[color].b, colors[color].a);
@@ -133,7 +137,7 @@ void tetris_drawTetromino(SDL_Renderer *renderer, uint8_t peice,
 
 void tetris_addToPlaced(uint8_t peice, SDL_Point position, uint8_t color) {
 
-    uint8_t pos = GET_PLACED_POSITION(position);
+    uint8_t pos = tetris_getPlacedPosition(position);
 
     for (int i = 0; i < PEICE_WIDTH; ++i) {
         if (tetris_tetrominos[peice][i]) {
@@ -168,7 +172,7 @@ void tetris_printPlaced() {
 bool tetris_collisionCheck(SDL_Point position, uint8_t peice) {
 
     Size size; tetris_getPeiceSize(peice, &size);
-    uint8_t i = GET_PLACED_POSITION(position);
+    uint8_t i = tetris_getPlacedPosition(position);
 
     if (position.x + size.w > ARENA_WIDTH  ||
         position.y + size.h > ARENA_HEIGHT ||
@@ -178,7 +182,7 @@ bool tetris_collisionCheck(SDL_Point position, uint8_t peice) {
 
     for (uint8_t i = 0; i < PEICE_WIDTH; ++i) {
         SDL_Point offset = {.x = i + position.x, .y = position.y};
-        uint8_t top = GET_PLACED_POSITION(offset);
+        uint8_t top = tetris_getPlacedPosition(offset);
         uint8_t bottom = top + ARENA_WIDTH;
         if ((tetris_tetrominos[peice][i] && placed[top]) ||
            (tetris_tetrominos[peice][i + PEICE_WIDTH] && placed[bottom])) {
