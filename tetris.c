@@ -310,13 +310,24 @@ void tetris_callback(uint64_t frame) {
     int w = 0;
     int h = 0;
     TTF_SizeText(font, "You Lost", &w, &h);
+
     SDL_Rect rect = {
         .x = (SCREEN_WIDTH_PX / 2) - (w / 2),
-        .y = 10,
+        .y = (SCREEN_HEIGHT_PX / 2) - (h / 2),
         .w = w,
         .h = h,
     };
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    int padding = 8;
+    SDL_Rect text_background = {
+        .x  = rect.x - padding,
+        .y = rect.y - padding,
+        .w = rect.w + padding * 2,
+        .h = rect.h + padding * 2
+    };
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderFillRect(renderer, &text_background);
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    SDL_RenderDrawRect(renderer, &text_background);
     SDL_RenderCopy(renderer, texture_lost_text, NULL, &rect);
 }
 
