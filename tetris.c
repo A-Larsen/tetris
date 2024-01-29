@@ -185,8 +185,8 @@ void tetris_init() {
 
 void tetris_pickPeice(uint8_t *peice, uint8_t *color) {
     static uint8_t s_color = 0;
-    *peice = (rand() / RAND_MAX) * PEICE_COUNT;
-    *color = (s_color + 1) % COLOR_SIZE;
+    *peice = (float)((float)rand() / (float)RAND_MAX) * PEICE_COUNT;
+    *color = (s_color++) % COLOR_SIZE;
 }
 
 int tetris_getInput() {
