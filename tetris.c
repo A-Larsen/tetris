@@ -326,7 +326,7 @@ void tetris_callback(uint64_t frame) {
                 tetris_addToPlaced(peice, point, color);
                 tetris_printPlaced();
                 tetris_pickPeice(&peice, &color);
-                if (point.y <= 0) lost = true;
+                if (point.y <= 1) lost = true;
                 point.y = 0;
             } 
         }
