@@ -18,7 +18,18 @@ typedef struct _Tetrominos {
 } Tetrominos;
 
 #define TETROMINOS_DATA_SIZE 8
+
+enum TET_TYPES {
+    TET_I,
+    TET_J,
+    TET_L,
+    TET_O,
+    TET_S,
+    TET_T,
+    TET_Z,
+};
 Tetrominos tetrominos = {
+
     .I = {0,0,0,0,
           1,1,1,1},
 
@@ -115,6 +126,8 @@ int main(void)
     SDL_Point point = {.x = 0, .y = 0};
 
     int i = 0;
+
+    uint8_t fall_speed = 50;
     while(!quit) {
         uint32_t start = SDL_GetTicks();
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
@@ -140,6 +153,13 @@ int main(void)
                             }
                             break;
                         }
+                        case SDLK_s: {
+                            fall_speed = 1;
+                            break;
+                        }
+                        default: {
+                            fall_speed = 50;
+                        }
                     }
                     break;
                 }
@@ -151,7 +171,7 @@ int main(void)
             }
         }
 
-        if (i % 50 == 0) {
+        if (i % fall_speed == 0) {
             if (point.y + 2 < ARENA_HEIGHT / tetrominos.size)  {
                 point.y++;
             } else if (doOnce) {
