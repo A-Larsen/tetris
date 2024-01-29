@@ -122,6 +122,22 @@ void tetris_init() {
     }
 }
 
+int tetris_getInput() {
+
+    while(SDL_PollEvent(&event)) {
+
+        switch(event.type) {
+            case SDL_KEYDOWN:
+                return event.key.keysym.sym;
+            case SDL_QUIT: {
+                quit = true;
+                break;
+            }
+        }
+    }
+    return 0;
+}
+
 void tetris_callback(uint64_t frame) {
     static uint8_t peice = PEICE_T;
     static bool doOnce = true;
@@ -135,38 +151,25 @@ void tetris_callback(uint64_t frame) {
     SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
     tetris_drawTetromino(renderer, peice, point);
 
-    while(SDL_PollEvent(&event)) {
-
-        switch(event.type) {
-            case SDL_KEYDOWN: {
-                switch(event.key.keysym.sym) {
-                    case SDLK_d: {
-                        if (point.x < 5) {
-                            point.x++;
-                        }
-                        break;
-                    }
-                    case SDLK_a: {
-                        if (point.x > 0) {
-                            point.x--;
-                        }
-                        break;
-                    }
-                    case SDLK_s: {
-                        fall_speed = 1;
-                        break;
-                    }
-                    default: {
-                        fall_speed = 50;
-                    }
-                }
-                break;
+    switch(tetris_getInput()) {
+        case SDLK_d: {
+            if (point.x < 5) {
+                point.x++;
             }
-
-            case SDL_QUIT: {
-                quit = true;
-                break;
+            break;
+        }
+        case SDLK_a: {
+            if (point.x > 0) {
+                point.x--;
             }
+            break;
+        }
+        case SDLK_s: {
+            fall_speed = 1;
+            break;
+        }
+        default: {
+            fall_speed = 50;
         }
     }
 
