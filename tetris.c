@@ -117,28 +117,20 @@ void tetris_printPlaced() {
 
 bool tetris_collisionCheck(SDL_Point position, uint8_t peice) {
 
-    SDL_Point point = {.x = 0, .y = 0};
     Size size; getPeiceSize(peice, &size);
     uint8_t i = GET_PLACED_POSITION(position);
 
     if (position.x + size.w > ARENA_WIDTH  ||
-        position.y  + size.h > ARENA_HEIGHT ||
+        position.y + size.h > ARENA_HEIGHT ||
         position.x < 0) {
         return true;
     }
 
-    for (point.y = 0; point.y < PEICE_HEIGHT; ++point.y ) {
-        for (point.x = 0; point.x < size.w; ++point.x) {
-            SDL_Point offset = {.x = point.x + position.x, 
-                                .y = point.y + position.y};
-            uint8_t i = GET_PLACED_POSITION(offset);
-            printf("%d\n", i);
+    for (uint8_t i = position.x; i < position.x + PEICE_WIDTH; ++i) {
+        SDL_Point offset = {.x = i, .y = position.y};
+        uint8_t i = GET_PLACED_POSITION(offset);
+        return placed[i] || placed[i + ARENA_WIDTH];
 
-            /* if (placed[i]) { */
-            /*     printf("found\n"); */
-            /*     return true; */
-            /* } */
-        }
     }
 
     return false;
@@ -219,7 +211,7 @@ void tetris_callback(uint64_t frame) {
             break;
         }
         default: {
-            fall_speed = 50;
+            fall_speed = 30;
         }
     }
     /* bool pass = tetris_collisionCheck(point, peice); */
@@ -230,12 +222,11 @@ void tetris_callback(uint64_t frame) {
 
         if (!tetris_collisionCheck(check, peice))  {
             point.y++;
-        } else if (doOnce) {
+        } else{
             printf("add to placed\n\n");
             tetris_addToPlaced(peice, point);
             tetris_printPlaced();
-            doOnce = false;
-        }
+        } 
     }
 
 }
