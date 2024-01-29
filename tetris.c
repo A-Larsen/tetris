@@ -48,7 +48,7 @@ static uint8_t placed_peices_count = 0;
 static PlacedPeice *placed_peices = NULL;
 static TTF_Font *font = NULL;
 static SDL_Texture *texture_lost_text = NULL;
-static uint8_t flip = 1;
+static uint8_t flip = 2;
 
 static SDL_Color colors[] = {
     [COLOR_RED] = {.r = 255, .g = 0, .b = 0, .a = 255},
@@ -112,10 +112,14 @@ void tetris_drawTetromino(SDL_Renderer *renderer, uint8_t peice,
         if (!tetris_tetrominos[peice][i]) continue;
         uint8_t x = i % PEICE_WIDTH;
         uint8_t y = floor((float)i / PEICE_WIDTH);
-        if (flip == 1) {
+
+        if (flip) {
             uint8_t temp = y;
             y = x;
             x = temp;
+        }
+        if (flip == 2) {
+            x = (x - 1) * -1;
         }
 
         SDL_Rect rect = {
