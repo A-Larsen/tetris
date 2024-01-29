@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h>
+#include <SDL2/SDL_ttf.h>
 #include <math.h>
 #include <time.h>
 
@@ -48,6 +49,7 @@ static uint8_t peice = PEICE_T;
 static int color = -1;
 static uint8_t placedPeicesCount = 0;
 static PlacedPeice *placedPeices = NULL;
+static TTF_Font *font = NULL;
 
 static SDL_Color colors[] = {
     [COLOR_RED] = {.r = 255, .g = 0, .b = 0, .a = 255},
@@ -192,6 +194,15 @@ void tetris_init() {
         exit(1);
     }
 
+    if (TTF_Init() != 0) {
+        fprintf(stderr, "could not initialize TTF\n%s", SDL_GetError());
+        exit(1);
+    }
+    font = TTF_OpenFont("./fonts/NotoSansMono-Regular.ttf", 8);
+    if (font == NULL) {
+        fprintf(stderr, "could not open font %s\n", SDL_GetError());
+    }
+
     window = SDL_CreateWindow("tetris", SDL_WINDOWPOS_UNDEFINED, 
                      SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH_PX, 
                      SCREEN_HEIGHT_PX, SDL_WINDOW_SHOWN);
@@ -225,8 +236,6 @@ int tetris_getInput() {
 }
 
 void tetris_callback(uint64_t frame) {
-    static bool doOnce = true;
-
 
     static SDL_Point point = {.x = 0, .y = 0};
 
