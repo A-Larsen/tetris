@@ -244,7 +244,7 @@ int tetris_getInput() {
     return 0;
 }
 
-void tetris_drawLoose() {
+void tetris_drawLooseText() {
     int w = 0;
     int h = 0;
     TTF_SizeText(font, "You Lost", &w, &h);
@@ -264,7 +264,7 @@ void tetris_drawLoose() {
     };
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderFillRect(renderer, &text_background);
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderDrawRect(renderer, &text_background);
     SDL_RenderCopy(renderer, texture_lost_text, NULL, &rect);
 
@@ -324,7 +324,7 @@ void tetris_callback(uint64_t frame) {
                 point.y++;
             } else{
                 tetris_addToPlaced(peice, point, color);
-                tetris_printPlaced();
+                /* tetris_printPlaced(); */
                 tetris_pickPeice(&peice, &color);
                 if (point.y <= 1) lost = true;
                 point.y = 0;
@@ -339,7 +339,7 @@ void tetris_callback(uint64_t frame) {
         placed_peices[i].position);
     }
     if (lost){
-        tetris_drawLoose();
+        tetris_drawLooseText();
     }
 }
 
