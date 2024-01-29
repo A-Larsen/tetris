@@ -63,7 +63,6 @@ void drawTetromino(SDL_Renderer *renderer, const uint8_t peice[8],
 
 void addToPlaced(const uint8_t peice[8], SDL_Point position) {
 
-    printf("x: %d, y: %d\n", position.x, position.y * 8);
     uint8_t pos = position.y * 8 + position.x;
     for (int i = 0; i < 4; ++i) {
         if (peice[i]) {
@@ -73,8 +72,6 @@ void addToPlaced(const uint8_t peice[8], SDL_Point position) {
             placed[pos + 8 + i] = 1;
         }
     }
-
-
 }
 
 void printPlaced() {
@@ -118,7 +115,7 @@ int main(void)
 
     bool doOnce = true;
     uint8_t *peice; 
-    memcpy(peice, &tetrominos.S, sizeof(uint8_t) * 8);
+    memcpy(peice, &tetrominos.T, sizeof(uint8_t) * 8);
 
     while(!quit) {
 
