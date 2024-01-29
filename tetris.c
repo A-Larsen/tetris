@@ -27,6 +27,18 @@
 #define COLOR_BLUE 2
 #define COLOR_SIZE 3
 
+typedef struct _Size {
+    int w;
+    int h;
+} Size;
+
+typedef struct _PlacedPeice {
+    uint8_t peice;
+    uint8_t color;
+    SDL_Point position;
+} PlacedPeice;
+
+
 static uint8_t placed[ARENA_SIZE]; // 16 x 8
 static SDL_Window *window;
 static SDL_Renderer *renderer;
@@ -34,12 +46,7 @@ static SDL_Event event;
 static bool quit = false;
 static uint8_t peice = PEICE_T;
 static int color = -1;
-
-
-typedef struct _Size {
-    int w;
-    int h;
-} Size;
+static uint8_t peice_count = 0;
 
 static SDL_Color colors[] = {
     [COLOR_RED] = {.r = 255, .g = 0, .b = 0, .a = 255},
@@ -47,6 +54,9 @@ static SDL_Color colors[] = {
     [COLOR_BLUE] = {.r = 0, .g = 0, .b = 255, .a = 255},
 };
 
+// can adventually figure out the mazimum number of peices that could be
+// placed
+PlacedPeice *placedPeices = NULL;
 
 uint8_t tetris_tetrominos[7][8] = {
     [PEICE_I] = {0,0,0,0,
@@ -121,6 +131,12 @@ void tetris_addToPlaced(uint8_t peice, SDL_Point position) {
             placed[pos + ARENA_WIDTH + i] = 1;
         }
     }
+
+    uint8_t i = peice_count++;
+    placedPeices = realloc(placedPeices, sizeof(PlacedPeice) * peice_count);
+    memcpy(&placedPeices[i].position, &position, sizeof(SDL_Point));
+    memcpy(&placedPeices[i].color, &color, sizeof(uint8_t));
+    memcpy(&placedPeices[i].peice, &peice, sizeof(uint8_t));
 }
 
 void tetris_printPlaced() {
@@ -165,9 +181,9 @@ void tetris_init() {
     srand(time(NULL));
     memset(&placed, 0, sizeof(uint8_t) * ARENA_SIZE);
     tetris_pickPeice(&peice, &color);
-    for (int i = 120; i < 128; ++i) {
-        placed[i] = 1;
-    }
+    /* for (int i = 120; i < 128; ++i) { */
+    /*     placed[i] = 1; */
+    /* } */
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "could not initialize SDL2\n%s", SDL_GetError());
@@ -280,6 +296,7 @@ void tetris_update(void (*callback)(uint64_t frame)) {
 void tetris_quit() {
     SDL_DestroyWindow(window);
     SDL_Quit();
+    free(placedPeices);
 }
 
 int main(void)
