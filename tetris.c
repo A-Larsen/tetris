@@ -24,6 +24,7 @@ static uint8_t placed[ARENA_SIZE]; // 16 x 8
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static SDL_Event event;
+static bool quit = false;
 
 uint8_t tetris_tetrominos[7][8] = {
     [PEICE_I] = {0,0,0,0,
@@ -121,88 +122,96 @@ void tetris_init() {
     }
 }
 
-int main(void)
-{
-    tetris_init();
+void tetris_callback(uint64_t frame) {
+    static uint8_t peice = PEICE_T;
+    static bool doOnce = true;
+    static SDL_Point point = {.x = 0, .y = 0};
 
-    bool quit = false;
+    static uint8_t fall_speed = 50;
 
-    bool doOnce = true;
-    uint8_t peice = PEICE_T;
-    SDL_Point point = {.x = 0, .y = 0};
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+    SDL_RenderClear(renderer);
 
-    int i = 0;
+    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
+    tetris_drawTetromino(renderer, peice, point);
 
-    uint8_t fall_speed = 50;
-    while(!quit) {
-        uint32_t start = SDL_GetTicks();
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-        SDL_RenderClear(renderer);
+    while(SDL_PollEvent(&event)) {
 
-        SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
-        tetris_drawTetromino(renderer, peice, point);
-
-        while(SDL_PollEvent(&event)) {
-
-            switch(event.type) {
-                case SDL_KEYDOWN: {
-                    switch(event.key.keysym.sym) {
-                        case SDLK_d: {
-                            if (point.x < 5) {
-                                point.x++;
-                            }
-                            break;
+        switch(event.type) {
+            case SDL_KEYDOWN: {
+                switch(event.key.keysym.sym) {
+                    case SDLK_d: {
+                        if (point.x < 5) {
+                            point.x++;
                         }
-                        case SDLK_a: {
-                            if (point.x > 0) {
-                                point.x--;
-                            }
-                            break;
-                        }
-                        case SDLK_s: {
-                            fall_speed = 1;
-                            break;
-                        }
-                        default: {
-                            fall_speed = 50;
-                        }
+                        break;
                     }
-                    break;
+                    case SDLK_a: {
+                        if (point.x > 0) {
+                            point.x--;
+                        }
+                        break;
+                    }
+                    case SDLK_s: {
+                        fall_speed = 1;
+                        break;
+                    }
+                    default: {
+                        fall_speed = 50;
+                    }
                 }
+                break;
+            }
 
-                case SDL_QUIT: {
-                    quit = true;
-                    break;
-                }
+            case SDL_QUIT: {
+                quit = true;
+                break;
             }
         }
+    }
 
-        if (i % fall_speed == 0) {
-            if (point.y + 2 < SCREEN_HEIGHT_PX / PEICE_SIZE)  {
-                point.y++;
-            } else if (doOnce) {
-                printf("add to placed\n\n");
-                tetris_addToPlaced(peice, point);
-                tetris_printPlaced();
-                doOnce = false;
-            }
+    if (frame % fall_speed == 0) {
+        if (point.y + 2 < SCREEN_HEIGHT_PX / PEICE_SIZE)  {
+            point.y++;
+        } else if (doOnce) {
+            printf("add to placed\n\n");
+            tetris_addToPlaced(peice, point);
+            tetris_printPlaced();
+            doOnce = false;
         }
+    }
+
+}
+
+void tetris_update(void (*callback)(uint64_t frame)) {
+    uint64_t frame;
+    while (!quit) {
+        uint32_t start = SDL_GetTicks();
+
+        callback(frame);
 
         uint32_t end = SDL_GetTicks();
         uint32_t elapsed_time = end - start;
 
-        uint8_t delay = elapsed_time;
         if (elapsed_time < 16) {
-            delay = 16 - elapsed_time;
-            SDL_Delay(delay);
+            elapsed_time = 16 - elapsed_time;
+            SDL_Delay(elapsed_time);
         } 
 
-
         SDL_RenderPresent(renderer);
-        i++;
+        frame++;
     }
+}
 
+void tetris_quit() {
     SDL_DestroyWindow(window);
     SDL_Quit();
+}
+
+int main(void)
+{
+    tetris_init();
+    tetris_update(tetris_callback);
+    tetris_quit();
     return 0;
 }
