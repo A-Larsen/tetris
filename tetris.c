@@ -119,20 +119,21 @@ bool tetris_collisionCheck(SDL_Point position, uint8_t peice) {
 
     SDL_Point point = {.x = 0, .y = 0};
     Size size; getPeiceSize(peice, &size);
-    printf("size: %d, %d\n", size.w, size.h);
+    /* printf("size: %d, %d\n", size.w, size.h); */
 
-    for (point.y = position.y; point.y < PEICE_HEIGHT; ++point.y ) {
-        for (point.x = position.x; point.x < PEICE_WIDTH; ++point.x) {
+    for (point.y = position.y; point.y < ARENA_HEIGHT; ++point.y ) {
+        for (point.x = position.x; point.x < ARENA_WIDTH; ++point.x) {
+            /* printf("%d, %d\n", point.x, point.y); */
             uint8_t i = GET_PLACED_POSITION(point);
-            printf("i: %d\n", i);
+            /* printf("i: %d\n", i); */
             if (placed[i] || point.x > (ARENA_WIDTH - size.w) ||
                 point.y > (ARENA_HEIGHT - size.h)) {
-                return false;
+                return true;
             }
         }
     }
 
-    return true;
+    return false;
 }
 
 void tetris_init() {
