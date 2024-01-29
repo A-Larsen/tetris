@@ -51,9 +51,9 @@ static SDL_Texture *texture_lost_text = NULL;
 static uint8_t flip = 0;
 
 static SDL_Color colors[] = {
-    [COLOR_RED] = {.r = 255, .g = 0, .b = 0, .a = 255},
-    [COLOR_GREEN] = {.r = 0, .g = 255, .b = 0, .a = 255},
-    [COLOR_BLUE] = {.r = 0, .g = 0, .b = 255, .a = 255},
+    [COLOR_RED] = {.r = 217, .g = 100, .b = 89, .a = 255},
+    [COLOR_GREEN] = {.r = 88, .g = 140, .b = 126, .a = 255},
+    [COLOR_BLUE] = {.r = 99, .g = 121, .b = 156, .a = 255},
 };
 
 // can adventually figure out the mazimum number of peices that could be
