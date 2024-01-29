@@ -7,6 +7,7 @@
 #define SCREEN_HEIGHT_PX 800U
 #define ARENA_WIDTH 8
 #define ARENA_HEIGHT 16
+#define ARENA_SIZE 128
 #define PEICE_WIDTH 4
 #define PEICE_HEIGHT 4
 #define TETROMINOS_DATA_SIZE 8
@@ -19,7 +20,10 @@
 #define PEICE_T 5
 #define PEICE_Z 6
 #define PEICE_SIZE 50
-static uint8_t placed[128]; // 16 x 8
+static uint8_t placed[ARENA_SIZE]; // 16 x 8
+static SDL_Window *window;
+static SDL_Renderer *renderer;
+static SDL_Event event;
 
 uint8_t tetris_tetrominos[7][8] = {
     [PEICE_I] = {0,0,0,0,
@@ -92,20 +96,34 @@ bool tetris_check(SDL_Point position) {
     return false;
 }
 
-int main(void)
-{
-    memset(&placed, 0, sizeof(uint8_t) * 128);
+void tetris_init() {
+    memset(&placed, 0, sizeof(uint8_t) * ARENA_SIZE);
+
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
-        fprintf(stderr, "could not initialize SDL2\n");
+        fprintf(stderr, "could not initialize SDL2\n%s", SDL_GetError());
         exit(1);
     }
-    SDL_Window *window = SDL_CreateWindow("tetris", SDL_WINDOWPOS_UNDEFINED, 
-                     SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH_PX, SCREEN_HEIGHT_PX,
-                     SDL_WINDOW_SHOWN);
 
-    SDL_Renderer *renderer = SDL_CreateRenderer(window, 0, 
-                                                SDL_RENDERER_SOFTWARE);
-    SDL_Event event;
+    window = SDL_CreateWindow("tetris", SDL_WINDOWPOS_UNDEFINED, 
+                     SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH_PX, 
+                     SCREEN_HEIGHT_PX, SDL_WINDOW_SHOWN);
+
+    if (window == NULL) {
+        fprintf(stderr, "could not create window\n%s", SDL_GetError());
+        exit(1);
+    }
+
+    renderer = SDL_CreateRenderer(window, 0, SDL_RENDERER_SOFTWARE);
+
+    if (renderer == NULL) {
+        fprintf(stderr, "could not create renderer\n%s", SDL_GetError());
+        exit(1);
+    }
+}
+
+int main(void)
+{
+    tetris_init();
 
     bool quit = false;
 
