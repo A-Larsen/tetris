@@ -107,7 +107,6 @@ void tetris_getPeiceSize(uint8_t peice, Size *size) {
 void tetris_drawTetromino(SDL_Renderer *renderer, uint8_t peice,
                    SDL_Point position)
 {
-
     for (int i = 0; i < TETROMINOS_DATA_SIZE; ++i) {
         if (!tetris_tetrominos[peice][i]) continue;
         uint8_t x = i % PEICE_WIDTH;
@@ -124,6 +123,7 @@ void tetris_drawTetromino(SDL_Renderer *renderer, uint8_t peice,
 void tetris_addToPlaced(uint8_t peice, SDL_Point position) {
 
     uint8_t pos = GET_PLACED_POSITION(position);
+
     for (int i = 0; i < PEICE_WIDTH; ++i) {
         if (tetris_tetrominos[peice][i]) {
             placed[pos + i] = 1;
@@ -165,12 +165,6 @@ bool tetris_collisionCheck(SDL_Point position, uint8_t peice) {
         return true;
     }
 
-    /* for (uint8_t i = position.x; i < position.x + PEICE_WIDTH; ++i) { */
-    /*     SDL_Point offset = {.x = i, .y = position.y}; */
-    /*     uint8_t i = GET_PLACED_POSITION(offset); */
-    /*     return placed[i] || placed[i + ARENA_WIDTH]; */
-    /* } */
-    bool collide = false;
     for (uint8_t i = 0; i < PEICE_WIDTH; ++i) {
         SDL_Point offset = {.x = i + position.x, .y = position.y};
         uint8_t top = GET_PLACED_POSITION(offset);
@@ -179,9 +173,6 @@ bool tetris_collisionCheck(SDL_Point position, uint8_t peice) {
            (tetris_tetrominos[peice][i + PEICE_WIDTH] && placed[bottom])) {
             return true;
         }
-        /* peice[i + PEICE_WIDTH] */
-        /* uint8_t i = GET_PLACED_POSITION(offset); */
-        /* return placed[i] || placed[i + ARENA_WIDTH]; */
     }
 
     return false;
