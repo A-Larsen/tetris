@@ -33,7 +33,7 @@ static SDL_Renderer *renderer;
 static SDL_Event event;
 static bool quit = false;
 static uint8_t peice = PEICE_T;
-static uint8_t color = 0;
+static int color = -1;
 
 
 typedef struct _Size {
@@ -156,11 +156,9 @@ bool tetris_collisionCheck(SDL_Point position, uint8_t peice) {
 
     return false;
 }
-
-void tetris_pickPeice(uint8_t *peice, uint8_t *color) {
-    static uint8_t s_color = 0;
+void tetris_pickPeice(uint8_t *peice, int *color) {
     *peice = (float)((float)rand() / (float)RAND_MAX) * PEICE_COUNT;
-    *color = (s_color++) % COLOR_SIZE;
+    *color = ((*color) + 1) % COLOR_SIZE;
 }
 
 void tetris_init() {
