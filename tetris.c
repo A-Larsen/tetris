@@ -44,9 +44,10 @@ static SDL_Window *window;
 static SDL_Renderer *renderer;
 static SDL_Event event;
 static bool quit = false;
-static uint8_t placedPeicesCount = 0;
-static PlacedPeice *placedPeices = NULL;
+static uint8_t placed_peices_count = 0;
+static PlacedPeice *placed_peices = NULL;
 static TTF_Font *font = NULL;
+static SDL_Texture *texture_lost_text = NULL;
 
 static SDL_Color colors[] = {
     [COLOR_RED] = {.r = 255, .g = 0, .b = 0, .a = 255},
@@ -132,12 +133,12 @@ void tetris_addToPlaced(uint8_t peice, SDL_Point position, uint8_t color) {
         }
     }
 
-    uint8_t i = placedPeicesCount++;
-    placedPeices = realloc(placedPeices, sizeof(PlacedPeice) *
-                           placedPeicesCount);
-    memcpy(&placedPeices[i].position, &position, sizeof(SDL_Point));
-    memcpy(&placedPeices[i].color, &color, sizeof(uint8_t));
-    memcpy(&placedPeices[i].peice, &peice, sizeof(uint8_t));
+    uint8_t i = placed_peices_count++;
+    placed_peices = realloc(placed_peices, sizeof(PlacedPeice) *
+                           placed_peices_count);
+    memcpy(&placed_peices[i].position, &position, sizeof(SDL_Point));
+    memcpy(&placed_peices[i].color, &color, sizeof(uint8_t));
+    memcpy(&placed_peices[i].peice, &peice, sizeof(uint8_t));
 }
 
 void tetris_printPlaced() {
@@ -194,10 +195,12 @@ void tetris_init() {
         fprintf(stderr, "could not initialize TTF\n%s", SDL_GetError());
         exit(1);
     }
-    font = TTF_OpenFont("./fonts/NotoSansMono-Regular.ttf", 8);
+    font = TTF_OpenFont("./fonts/NotoSansMono-Regular.ttf", 45);
+
     if (font == NULL) {
         fprintf(stderr, "could not open font %s\n", SDL_GetError());
     }
+
 
     window = SDL_CreateWindow("tetris", SDL_WINDOWPOS_UNDEFINED, 
                      SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH_PX, 
@@ -214,6 +217,16 @@ void tetris_init() {
         fprintf(stderr, "could not create renderer\n%s", SDL_GetError());
         exit(1);
     }
+
+    SDL_Color font_color = {.r = 255, .g = 255, .b =255, .a = 255};
+    SDL_Surface *surface = TTF_RenderText_Solid(font, "You Lost", font_color);
+
+    if (surface == NULL) {
+        fprintf(stderr, "Could not create text surface\n%s", SDL_GetError());
+    }
+    texture_lost_text = SDL_CreateTextureFromSurface(renderer, surface);
+
+    SDL_FreeSurface(surface);
 }
 
 
@@ -288,11 +301,23 @@ void tetris_callback(uint64_t frame) {
         } 
     }
 
-    for (uint8_t i = 0; i < placedPeicesCount; ++i) {
-        tetris_setColor(placedPeices[i].color);
-        tetris_drawTetromino(renderer, placedPeices[i].peice,
-        placedPeices[i].position);
+    for (uint8_t i = 0; i < placed_peices_count; ++i) {
+        tetris_setColor(placed_peices[i].color);
+        tetris_drawTetromino(renderer, placed_peices[i].peice,
+        placed_peices[i].position);
     }
+
+    int w = 0;
+    int h = 0;
+    TTF_SizeText(font, "You Lost", &w, &h);
+    SDL_Rect rect = {
+        .x = (SCREEN_WIDTH_PX / 2) - (w / 2),
+        .y = 10,
+        .w = w,
+        .h = h,
+    };
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderCopy(renderer, texture_lost_text, NULL, &rect);
 }
 
 void tetris_update(void (*callback)(uint64_t frame)) {
@@ -318,7 +343,9 @@ void tetris_update(void (*callback)(uint64_t frame)) {
 void tetris_quit() {
     SDL_DestroyWindow(window);
     SDL_Quit();
-    free(placedPeices);
+    free(placed_peices);
+    TTF_CloseFont(font);
+    SDL_DestroyTexture(texture_lost_text);
 }
 
 int main(void)
