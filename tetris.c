@@ -58,7 +58,6 @@ static SDL_Color colors[] = {
 
 // can adventually figure out the mazimum number of peices that could be
 // placed
-
 uint8_t tetris_tetrominos[7][8] = {
     [PEICE_I] = {0,0,0,0,
                  1,1,1,1},
