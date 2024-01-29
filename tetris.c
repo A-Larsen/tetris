@@ -2,6 +2,7 @@
 #include <stdbool.h>
 #include <SDL2/SDL.h>
 #include <math.h>
+#include <time.h>
 
 #define SCREEN_WIDTH_PX 400U
 #define SCREEN_HEIGHT_PX 800U
@@ -19,7 +20,12 @@
 #define PEICE_S 4
 #define PEICE_T 5
 #define PEICE_Z 6
+#define PEICE_COUNT 7
 #define PEICE_SIZE 50
+#define COLOR_RED 0
+#define COLOR_GREEN 1
+#define COLOR_BLUE 2
+#define COLOR_SIZE 3
 
 static uint8_t placed[ARENA_SIZE]; // 16 x 8
 static SDL_Window *window;
@@ -31,6 +37,13 @@ typedef struct _Size {
     int w;
     int h;
 } Size;
+
+static SDL_Color colors[] = {
+    [COLOR_RED] = {.r = 255, .g = 0, .b = 0, .a = 255},
+    [COLOR_GREEN] = {.r = 0, .g = 255, .b = 0, .a = 255},
+    [COLOR_BLUE] = {.r = 0, .g = 0, .b = 255, .a = 255},
+};
+
 
 uint8_t tetris_tetrominos[7][8] = {
     [PEICE_I] = {0,0,0,0,
@@ -55,7 +68,12 @@ uint8_t tetris_tetrominos[7][8] = {
                  0,1,1,0},
 };
 
-void getPeiceSize(uint8_t peice, Size *size) {
+void tetris_setColor(uint8_t color) {
+    SDL_SetRenderDrawColor(renderer, colors[color].r, colors[color].g,
+                           colors[color].b, colors[color].a);
+}
+
+void tetris_getPeiceSize(uint8_t peice, Size *size) {
     size->w = 0;
     size->h = 1;
 
@@ -117,7 +135,7 @@ void tetris_printPlaced() {
 
 bool tetris_collisionCheck(SDL_Point position, uint8_t peice) {
 
-    Size size; getPeiceSize(peice, &size);
+    Size size; tetris_getPeiceSize(peice, &size);
     uint8_t i = GET_PLACED_POSITION(position);
 
     if (position.x + size.w > ARENA_WIDTH  ||
@@ -137,6 +155,7 @@ bool tetris_collisionCheck(SDL_Point position, uint8_t peice) {
 }
 
 void tetris_init() {
+    srand(time(NULL));
     memset(&placed, 0, sizeof(uint8_t) * ARENA_SIZE);
     for (int i = 120; i < 128; ++i) {
         placed[i] = 1;
@@ -164,6 +183,12 @@ void tetris_init() {
     }
 }
 
+void tetris_pickPeice(uint8_t *peice, uint8_t *color) {
+    static uint8_t s_color = 0;
+    *peice = (rand() / RAND_MAX) * PEICE_COUNT;
+    *color = (s_color + 1) % COLOR_SIZE;
+}
+
 int tetris_getInput() {
     while(SDL_PollEvent(&event)) {
         switch(event.type) {
@@ -180,15 +205,18 @@ int tetris_getInput() {
 
 void tetris_callback(uint64_t frame) {
     static uint8_t peice = PEICE_T;
+    static uint8_t color = 0;
     static bool doOnce = true;
     static SDL_Point point = {.x = 0, .y = 0};
 
     static uint8_t fall_speed = 50;
 
+    tetris_pickPeice(&peice, &color);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
 
-    SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
+    /* SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0); */
+    tetris_setColor(color);
     tetris_drawTetromino(renderer, peice, point);
 
     switch(tetris_getInput()) {
@@ -214,8 +242,6 @@ void tetris_callback(uint64_t frame) {
             fall_speed = 30;
         }
     }
-    /* bool pass = tetris_collisionCheck(point, peice); */
-    /* printf("%d\n", pass); */
 
     if (frame % fall_speed == 0) {
         SDL_Point check = {.x = point.x, .y = point.y + 1};
