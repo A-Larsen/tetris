@@ -39,14 +39,11 @@ typedef struct _PlacedPeice {
     SDL_Point position;
 } PlacedPeice;
 
-
 static uint8_t placed[ARENA_SIZE]; // 16 x 8
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static SDL_Event event;
 static bool quit = false;
-static uint8_t peice = PEICE_T;
-static int color = -1;
 static uint8_t placedPeicesCount = 0;
 static PlacedPeice *placedPeices = NULL;
 static TTF_Font *font = NULL;
@@ -122,7 +119,7 @@ void tetris_drawTetromino(SDL_Renderer *renderer, uint8_t peice,
     }
 }
 
-void tetris_addToPlaced(uint8_t peice, SDL_Point position) {
+void tetris_addToPlaced(uint8_t peice, SDL_Point position, uint8_t color) {
 
     uint8_t pos = GET_PLACED_POSITION(position);
 
@@ -187,7 +184,6 @@ void tetris_pickPeice(uint8_t *peice, int *color) {
 void tetris_init() {
     srand(time(NULL));
     memset(&placed, 0, sizeof(uint8_t) * ARENA_SIZE);
-    tetris_pickPeice(&peice, &color);
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "could not initialize SDL2\n%s", SDL_GetError());
@@ -238,6 +234,8 @@ int tetris_getInput() {
 void tetris_callback(uint64_t frame) {
 
     static SDL_Point point = {.x = 0, .y = 0};
+    static int color = COLOR_RED;
+    static uint8_t peice = PEICE_L;
 
     if (point.y == 0) {
         Size size;
@@ -283,7 +281,7 @@ void tetris_callback(uint64_t frame) {
         if (!tetris_collisionCheck(check, peice))  {
             point.y++;
         } else{
-            tetris_addToPlaced(peice, point);
+            tetris_addToPlaced(peice, point, color);
             tetris_printPlaced();
             tetris_pickPeice(&peice, &color);
             point.y = 0;
