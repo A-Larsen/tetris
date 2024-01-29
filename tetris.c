@@ -134,7 +134,7 @@ uint8_t tetris_drawTetromino(SDL_Renderer *renderer, uint8_t peice,
         };
         tetris_setColor(color);
         SDL_RenderFillRect(renderer, &rect);
-        SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderDrawRect(renderer, &rect);
     }
     return color;
