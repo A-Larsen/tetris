@@ -87,9 +87,7 @@ void printPlaced() {
     }
 }
 
-void dropPeice(const uint8_t peice[8]) {
-    uint16_t drop = 0;
-
+void checkIfFits() {
 }
 
 int main(void)
@@ -109,26 +107,40 @@ int main(void)
                                                 SDL_RENDERER_SOFTWARE);
     SDL_Event event;
 
-    uint16_t drop = 0;
-
     bool quit = false;
 
     bool doOnce = true;
     uint8_t *peice; 
     memcpy(peice, &tetrominos.T, sizeof(uint8_t) * 8);
+    SDL_Point point = {.x = 0, .y = 0};
 
+    int i = 0;
     while(!quit) {
-
+        uint32_t start = SDL_GetTicks();
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
         SDL_RenderClear(renderer);
 
         SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0);
-        SDL_Point point = {.x = 0, .y = drop};
         drawTetromino(renderer, peice, point);
 
         while(SDL_PollEvent(&event)) {
+
             switch(event.type) {
                 case SDL_KEYDOWN: {
+                    switch(event.key.keysym.sym) {
+                        case SDLK_d: {
+                            if (point.x < 5) {
+                                point.x++;
+                            }
+                            break;
+                        }
+                        case SDLK_a: {
+                            if (point.x > 0) {
+                                point.x--;
+                            }
+                            break;
+                        }
+                    }
                     break;
                 }
 
@@ -139,18 +151,29 @@ int main(void)
             }
         }
 
-        if (drop + 2 < ARENA_HEIGHT / tetrominos.size)  {
-            drop++;
-        } else if (doOnce) {
-            printf("add to placed\n\n");
-            addToPlaced(peice, point);
-            printPlaced();
-            doOnce = false;
-            /* drop = 0; */
+        if (i % 50 == 0) {
+            if (point.y + 2 < ARENA_HEIGHT / tetrominos.size)  {
+                point.y++;
+            } else if (doOnce) {
+                printf("add to placed\n\n");
+                addToPlaced(peice, point);
+                printPlaced();
+                doOnce = false;
+            }
         }
 
+        uint32_t end = SDL_GetTicks();
+        uint32_t elapsed_time = end - start;
+
+        uint8_t delay = elapsed_time;
+        if (elapsed_time < 16) {
+            delay = 16 - elapsed_time;
+            SDL_Delay(delay);
+        } 
+
+
         SDL_RenderPresent(renderer);
-        SDL_Delay(100);
+        i++;
     }
 
     SDL_DestroyWindow(window);
