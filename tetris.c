@@ -28,6 +28,10 @@
 #define COLOR_BLUE 2
 #define COLOR_ORANGE 3
 #define COLOR_SIZE 4
+#define FLIP_NORMAL 0
+#define FLIP_LEFT 1
+#define FLIP_RIGHT 2
+#define FLIP_UPSIDEDOWN 3
 
 typedef struct _Size {
     int w;
@@ -49,7 +53,7 @@ static uint8_t placed_peices_count = 0;
 static PlacedPeice *placed_peices = NULL;
 static TTF_Font *font = NULL;
 static SDL_Texture *texture_lost_text = NULL;
-static uint8_t flip = 0;
+static uint8_t flip = FLIP_NORMAL;
 
 static SDL_Color colors[] = {
     [COLOR_RED] = {.r = 217, .g = 100, .b = 89, .a = 255},
@@ -110,22 +114,31 @@ void tetris_getPeiceSize(uint8_t peice, Size *size) {
     }
 }
 
+void tetris_scanPeice(uint8_t peice, uint8_t i, int *x, int *y) {
+    *x = i % PEICE_WIDTH;
+    *y = floor((float)i / PEICE_WIDTH);
+
+    switch(flip) {
+        case FLIP_RIGHT: {
+            *x = (*x - 1) * -1;
+        }
+        case FLIP_LEFT: {
+            uint8_t temp = *y;
+            *y = *x;
+            *x = temp;
+            break;
+        }
+    }
+
+}
+
 uint8_t tetris_drawTetromino(SDL_Renderer *renderer, uint8_t peice,
                    SDL_Point position, uint8_t color)
 {
     for (int i = 0; i < TETROMINOS_DATA_SIZE; ++i) {
         if (!tetris_tetrominos[peice][i]) continue;
-        uint8_t x = i % PEICE_WIDTH;
-        uint8_t y = floor((float)i / PEICE_WIDTH);
-
-        if (flip) {
-            uint8_t temp = y;
-            y = x;
-            x = temp;
-        }
-        if (flip == 2) {
-            x = (x - 1) * -1;
-        }
+        int x, y;
+        tetris_scanPeice(peice, i, &x, &y);
 
         SDL_Rect rect = {
             .x = (x + position.x) * PEICE_SIZE, .y = (y + position.y) *
@@ -215,7 +228,7 @@ void tetris_init() {
         fprintf(stderr, "could not initialize TTF\n%s", SDL_GetError());
         exit(1);
     }
-    font = TTF_OpenFont("./fonts/NotoSansMono-Regular.ttf", 45);
+    font = TTF_OpenFont("./fonts/NotoSansMono-Regular.ttf", 50);
 
     if (font == NULL) {
         fprintf(stderr, "could not open font %s\n", SDL_GetError());
