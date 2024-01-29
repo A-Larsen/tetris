@@ -9,7 +9,7 @@
 #define ARENA_HEIGHT 16
 #define ARENA_SIZE 128
 #define PEICE_WIDTH 4
-#define PEICE_HEIGHT 4
+#define PEICE_HEIGHT 2
 #define TETROMINOS_DATA_SIZE 8
 #define GET_PLACED_POSITION(pos) pos.y * ARENA_WIDTH + pos.x;
 #define PEICE_I 0
@@ -20,11 +20,17 @@
 #define PEICE_T 5
 #define PEICE_Z 6
 #define PEICE_SIZE 50
+
 static uint8_t placed[ARENA_SIZE]; // 16 x 8
 static SDL_Window *window;
 static SDL_Renderer *renderer;
 static SDL_Event event;
 static bool quit = false;
+
+typedef struct _Size {
+    int w;
+    int h;
+} Size;
 
 uint8_t tetris_tetrominos[7][8] = {
     [PEICE_I] = {0,0,0,0,
@@ -37,18 +43,35 @@ uint8_t tetris_tetrominos[7][8] = {
                  1,1,1,0},
 
     [PEICE_O] = {1,1,0,0,
-          1,1,0,0},
+                 1,1,0,0},
 
     [PEICE_S] = {0,1,1,0,
-          1,1,0,0},
+                 1,1,0,0},
 
     [PEICE_T] = {0,1,0,0,
-          1,1,1,0},
+                 1,1,1,0},
 
     [PEICE_Z] = {1,1,0,0,
-          0,1,1,0},
-
+                 0,1,1,0},
 };
+
+void getPeiceSize(uint8_t peice, Size *size) {
+    size->w = 0;
+    size->h = 1;
+
+    for (uint8_t i; i < PEICE_WIDTH; ++i) {
+        bool top = tetris_tetrominos[peice][i];
+        bool bottom = tetris_tetrominos[peice][i + PEICE_WIDTH];
+            
+        if (top && bottom) {
+            size->h = 2;
+        }
+
+        if (top || bottom) {
+            size->w++;
+        }
+    }
+}
 
 void tetris_drawTetromino(SDL_Renderer *renderer, uint8_t peice,
                    SDL_Point position)
@@ -56,7 +79,7 @@ void tetris_drawTetromino(SDL_Renderer *renderer, uint8_t peice,
     for (int i = 0; i < TETROMINOS_DATA_SIZE; ++i) {
         if (!tetris_tetrominos[peice][i]) continue;
         uint8_t x = i % PEICE_WIDTH;
-        uint8_t y = floor((float)i / PEICE_HEIGHT);
+        uint8_t y = floor((float)i / PEICE_WIDTH);
         SDL_Rect rect = {
             .x = (x + position.x) * PEICE_SIZE, .y = (y + position.y) * 
                  PEICE_SIZE,
@@ -93,8 +116,19 @@ void tetris_printPlaced() {
 }
 
 bool tetris_check(SDL_Point position) {
-    uint8_t pos = GET_PLACED_POSITION(position);
-    return false;
+
+    SDL_Point point = {.x = 0, .y = 0};
+
+    for (point.y = position.y; point.y < ARENA_HEIGHT; ++point.y ) {
+        for (point.x = position.x; point.x < ARENA_WIDTH; ++point.x) {
+            uint8_t i = GET_PLACED_POSITION(point);
+            if (placed[i]) {
+                return false;
+            }
+        }
+    }
+
+    return true;
 }
 
 void tetris_init() {
