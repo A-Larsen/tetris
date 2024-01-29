@@ -244,6 +244,32 @@ int tetris_getInput() {
     return 0;
 }
 
+void tetris_drawLoose() {
+    int w = 0;
+    int h = 0;
+    TTF_SizeText(font, "You Lost", &w, &h);
+
+    SDL_Rect rect = {
+        .x = (SCREEN_WIDTH_PX / 2) - (w / 2),
+        .y = (SCREEN_HEIGHT_PX / 2) - (h / 2),
+        .w = w,
+        .h = h,
+    };
+    int padding = 8;
+    SDL_Rect text_background = {
+        .x  = rect.x - padding,
+        .y = rect.y - padding,
+        .w = rect.w + padding * 2,
+        .h = rect.h + padding * 2
+    };
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderFillRect(renderer, &text_background);
+    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
+    SDL_RenderDrawRect(renderer, &text_background);
+    SDL_RenderCopy(renderer, texture_lost_text, NULL, &rect);
+
+}
+
 void tetris_callback(uint64_t frame) {
 
     static SDL_Point point = {.x = 0, .y = 0};
@@ -306,29 +332,7 @@ void tetris_callback(uint64_t frame) {
         tetris_drawTetromino(renderer, placed_peices[i].peice,
         placed_peices[i].position);
     }
-
-    int w = 0;
-    int h = 0;
-    TTF_SizeText(font, "You Lost", &w, &h);
-
-    SDL_Rect rect = {
-        .x = (SCREEN_WIDTH_PX / 2) - (w / 2),
-        .y = (SCREEN_HEIGHT_PX / 2) - (h / 2),
-        .w = w,
-        .h = h,
-    };
-    int padding = 8;
-    SDL_Rect text_background = {
-        .x  = rect.x - padding,
-        .y = rect.y - padding,
-        .w = rect.w + padding * 2,
-        .h = rect.h + padding * 2
-    };
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderFillRect(renderer, &text_background);
-    SDL_SetRenderDrawColor(renderer, 0, 255, 0, 255);
-    SDL_RenderDrawRect(renderer, &text_background);
-    SDL_RenderCopy(renderer, texture_lost_text, NULL, &rect);
+    /* tetris_drawLoose(); */
 }
 
 void tetris_update(void (*callback)(uint64_t frame)) {
