@@ -119,15 +119,21 @@ bool tetris_collisionCheck(SDL_Point position, uint8_t peice) {
 
     SDL_Point point = {.x = 0, .y = 0};
     Size size; getPeiceSize(peice, &size);
-    /* printf("size: %d, %d\n", size.w, size.h); */
+    uint8_t i = GET_PLACED_POSITION(position);
 
-    for (point.y = position.y; point.y < ARENA_HEIGHT; ++point.y ) {
-        for (point.x = position.x; point.x < ARENA_WIDTH; ++point.x) {
-            /* printf("%d, %d\n", point.x, point.y); */
-            uint8_t i = GET_PLACED_POSITION(point);
-            /* printf("i: %d\n", i); */
-            if (placed[i] || point.x > (ARENA_WIDTH - size.w) ||
-                point.y > (ARENA_HEIGHT - size.h)) {
+    if (position.x  + size.w > ARENA_WIDTH  ||
+        point.y  + size.h > ARENA_HEIGHT) {
+        return true;
+    }
+
+
+    for (point.y = 0; point.y < PEICE_HEIGHT; ++point.y ) {
+        for (point.x = 0; point.x < size.w; ++point.x) {
+            SDL_Point offset = {.x = point.x + position.x, 
+                                .y = point.y + position.y};
+            uint8_t i = GET_PLACED_POSITION(offset);
+
+            if (placed[i]) {
                 return true;
             }
         }
@@ -138,6 +144,9 @@ bool tetris_collisionCheck(SDL_Point position, uint8_t peice) {
 
 void tetris_init() {
     memset(&placed, 0, sizeof(uint8_t) * ARENA_SIZE);
+    for (int i = 120; i < 128; ++i) {
+        placed[i] = 1;
+    }
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "could not initialize SDL2\n%s", SDL_GetError());
@@ -208,7 +217,7 @@ void tetris_callback(uint64_t frame) {
             break;
         }
         default: {
-            fall_speed = 50;
+            fall_speed = 200;
         }
     }
 
