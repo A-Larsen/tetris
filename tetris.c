@@ -32,6 +32,9 @@ static SDL_Window *window;
 static SDL_Renderer *renderer;
 static SDL_Event event;
 static bool quit = false;
+static uint8_t peice = PEICE_T;
+static uint8_t color = 0;
+
 
 typedef struct _Size {
     int w;
@@ -154,9 +157,16 @@ bool tetris_collisionCheck(SDL_Point position, uint8_t peice) {
     return false;
 }
 
+void tetris_pickPeice(uint8_t *peice, uint8_t *color) {
+    static uint8_t s_color = 0;
+    *peice = (float)((float)rand() / (float)RAND_MAX) * PEICE_COUNT;
+    *color = (s_color++) % COLOR_SIZE;
+}
+
 void tetris_init() {
     srand(time(NULL));
     memset(&placed, 0, sizeof(uint8_t) * ARENA_SIZE);
+    tetris_pickPeice(&peice, &color);
     for (int i = 120; i < 128; ++i) {
         placed[i] = 1;
     }
@@ -183,11 +193,6 @@ void tetris_init() {
     }
 }
 
-void tetris_pickPeice(uint8_t *peice, uint8_t *color) {
-    static uint8_t s_color = 0;
-    *peice = (float)((float)rand() / (float)RAND_MAX) * PEICE_COUNT;
-    *color = (s_color++) % COLOR_SIZE;
-}
 
 int tetris_getInput() {
     while(SDL_PollEvent(&event)) {
@@ -204,14 +209,11 @@ int tetris_getInput() {
 }
 
 void tetris_callback(uint64_t frame) {
-    static uint8_t peice = PEICE_T;
-    static uint8_t color = 0;
     static bool doOnce = true;
     static SDL_Point point = {.x = 0, .y = 0};
 
     static uint8_t fall_speed = 50;
 
-    tetris_pickPeice(&peice, &color);
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
 
