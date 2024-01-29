@@ -125,7 +125,6 @@ void tetris_init() {
 int tetris_getInput() {
 
     while(SDL_PollEvent(&event)) {
-
         switch(event.type) {
             case SDL_KEYDOWN:
                 return event.key.keysym.sym;
@@ -187,7 +186,7 @@ void tetris_callback(uint64_t frame) {
 }
 
 void tetris_update(void (*callback)(uint64_t frame)) {
-    uint64_t frame;
+    uint64_t frame = 0;
     while (!quit) {
         uint32_t start = SDL_GetTicks();
 
