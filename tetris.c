@@ -59,7 +59,7 @@ void getPeiceSize(uint8_t peice, Size *size) {
     size->w = 0;
     size->h = 1;
 
-    for (uint8_t i; i < PEICE_WIDTH; ++i) {
+    for (uint8_t i = 0; i < PEICE_WIDTH; ++i) {
         bool top = tetris_tetrominos[peice][i];
         bool bottom = tetris_tetrominos[peice][i + PEICE_WIDTH];
             
@@ -115,14 +115,18 @@ void tetris_printPlaced() {
     }
 }
 
-bool tetris_check(SDL_Point position) {
+bool tetris_collisionCheck(SDL_Point position, uint8_t peice) {
 
     SDL_Point point = {.x = 0, .y = 0};
+    Size size; getPeiceSize(peice, &size);
+    printf("size: %d, %d\n", size.w, size.h);
 
-    for (point.y = position.y; point.y < ARENA_HEIGHT; ++point.y ) {
-        for (point.x = position.x; point.x < ARENA_WIDTH; ++point.x) {
+    for (point.y = position.y; point.y < PEICE_HEIGHT; ++point.y ) {
+        for (point.x = position.x; point.x < PEICE_WIDTH; ++point.x) {
             uint8_t i = GET_PLACED_POSITION(point);
-            if (placed[i]) {
+            printf("i: %d\n", i);
+            if (placed[i] || point.x > (ARENA_WIDTH - size.w) ||
+                point.y > (ARENA_HEIGHT - size.h)) {
                 return false;
             }
         }
@@ -157,7 +161,6 @@ void tetris_init() {
 }
 
 int tetris_getInput() {
-
     while(SDL_PollEvent(&event)) {
         switch(event.type) {
             case SDL_KEYDOWN:
@@ -186,9 +189,11 @@ void tetris_callback(uint64_t frame) {
 
     switch(tetris_getInput()) {
         case SDLK_d: {
-            if (point.x < 5) {
+            /* if (point.x < 5) { */
                 point.x++;
-            }
+            /* } */
+            bool pass = tetris_collisionCheck(point, peice);
+            printf("%d\n", pass);
             break;
         }
         case SDLK_a: {
