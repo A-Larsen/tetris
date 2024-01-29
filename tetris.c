@@ -113,7 +113,7 @@ void tetris_drawTetromino(SDL_Renderer *renderer, uint8_t peice,
         uint8_t x = i % PEICE_WIDTH;
         uint8_t y = floor((float)i / PEICE_WIDTH);
         SDL_Rect rect = {
-            .x = (x + position.x) * PEICE_SIZE, .y = (y + position.y) * 
+            .x = (x + position.x) * PEICE_SIZE, .y = (y + position.y) *
                  PEICE_SIZE,
             .w = PEICE_SIZE, .h = PEICE_SIZE
         };
@@ -134,7 +134,8 @@ void tetris_addToPlaced(uint8_t peice, SDL_Point position) {
     }
 
     uint8_t i = placedPeicesCount++;
-    placedPeices = realloc(placedPeices, sizeof(PlacedPeice) * placedPeicesCount);
+    placedPeices = realloc(placedPeices, sizeof(PlacedPeice) *
+                           placedPeicesCount);
     memcpy(&placedPeices[i].position, &position, sizeof(SDL_Point));
     memcpy(&placedPeices[i].color, &color, sizeof(uint8_t));
     memcpy(&placedPeices[i].peice, &peice, sizeof(uint8_t));
@@ -182,9 +183,6 @@ void tetris_init() {
     srand(time(NULL));
     memset(&placed, 0, sizeof(uint8_t) * ARENA_SIZE);
     tetris_pickPeice(&peice, &color);
-    /* for (int i = 120; i < 128; ++i) { */
-    /*     placed[i] = 1; */
-    /* } */
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "could not initialize SDL2\n%s", SDL_GetError());
