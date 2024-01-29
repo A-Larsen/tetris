@@ -121,21 +121,24 @@ bool tetris_collisionCheck(SDL_Point position, uint8_t peice) {
     Size size; getPeiceSize(peice, &size);
     uint8_t i = GET_PLACED_POSITION(position);
 
-    if (position.x  + size.w > ARENA_WIDTH  ||
-        point.y  + size.h > ARENA_HEIGHT) {
+    if (position.x + size.w > ARENA_WIDTH  ||
+        point.y  + size.h > ARENA_HEIGHT ||
+        position.x < 0 ||
+        position.y + 2 > SCREEN_HEIGHT_PX / PEICE_SIZE ) {
         return true;
     }
-
 
     for (point.y = 0; point.y < PEICE_HEIGHT; ++point.y ) {
         for (point.x = 0; point.x < size.w; ++point.x) {
             SDL_Point offset = {.x = point.x + position.x, 
                                 .y = point.y + position.y};
             uint8_t i = GET_PLACED_POSITION(offset);
+            printf("%d\n", i);
 
-            if (placed[i]) {
-                return true;
-            }
+            /* if (placed[i]) { */
+            /*     printf("found\n"); */
+            /*     return true; */
+            /* } */
         }
     }
 
@@ -199,15 +202,15 @@ void tetris_callback(uint64_t frame) {
 
     switch(tetris_getInput()) {
         case SDLK_d: {
-            /* if (point.x < 5) { */
+            SDL_Point check = {.x = point.x + 1, .y = point.y};
+            if (!tetris_collisionCheck(check, peice)) {
                 point.x++;
-            /* } */
-            bool pass = tetris_collisionCheck(point, peice);
-            printf("%d\n", pass);
+            }
             break;
         }
         case SDLK_a: {
-            if (point.x > 0) {
+            SDL_Point check = {.x = point.x - 1, .y = point.y};
+            if (!tetris_collisionCheck(check, peice)) {
                 point.x--;
             }
             break;
@@ -217,13 +220,17 @@ void tetris_callback(uint64_t frame) {
             break;
         }
         default: {
-            fall_speed = 200;
+            fall_speed = 50;
         }
     }
+    /* bool pass = tetris_collisionCheck(point, peice); */
+    /* printf("%d\n", pass); */
 
     if (frame % fall_speed == 0) {
-        if (point.y + 2 < SCREEN_HEIGHT_PX / PEICE_SIZE)  {
-            point.y++;
+        SDL_Point check = {.x = point.x, .y = point.y + 1};
+
+        if (!tetris_collisionCheck(check, peice))  {
+                point.y++;
         } else if (doOnce) {
             printf("add to placed\n\n");
             tetris_addToPlaced(peice, point);
