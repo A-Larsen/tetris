@@ -93,7 +93,7 @@ void tetris_getPeiceSize(uint8_t peice, Size *size) {
     for (uint8_t i = 0; i < PEICE_WIDTH; ++i) {
         bool top = tetris_tetrominos[peice][i];
         bool bottom = tetris_tetrominos[peice][i + PEICE_WIDTH];
-            
+
         if (top && bottom) {
             size->h = 2;
         }
@@ -269,6 +269,8 @@ void tetris_callback(uint64_t frame) {
             printf("add to placed\n\n");
             tetris_addToPlaced(peice, point);
             tetris_printPlaced();
+            tetris_pickPeice(&peice, &color);
+            point.y = 0;
         } 
     }
 
