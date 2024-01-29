@@ -226,14 +226,21 @@ int tetris_getInput() {
 
 void tetris_callback(uint64_t frame) {
     static bool doOnce = true;
+
+
     static SDL_Point point = {.x = 0, .y = 0};
+
+    if (point.y == 0) {
+        Size size;
+        tetris_getPeiceSize(peice, &size);
+        point.x = (ARENA_WIDTH / 2) - (size.w / 2);
+    }
 
     static uint8_t fall_speed = 50;
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
 
-    /* SDL_SetRenderDrawColor(renderer, 255, 0, 0, 0); */
     tetris_setColor(color);
     tetris_drawTetromino(renderer, peice, point);
 
@@ -267,7 +274,6 @@ void tetris_callback(uint64_t frame) {
         if (!tetris_collisionCheck(check, peice))  {
             point.y++;
         } else{
-            printf("add to placed\n\n");
             tetris_addToPlaced(peice, point);
             tetris_printPlaced();
             tetris_pickPeice(&peice, &color);
