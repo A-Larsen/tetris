@@ -272,6 +272,7 @@ void tetris_drawLoose() {
 
 void tetris_callback(uint64_t frame) {
 
+    static bool lost = false;
     static SDL_Point point = {.x = 0, .y = 0};
     static int color = COLOR_RED;
     static uint8_t peice = PEICE_L;
@@ -290,41 +291,46 @@ void tetris_callback(uint64_t frame) {
     tetris_setColor(color);
     tetris_drawTetromino(renderer, peice, point);
 
-    switch(tetris_getInput()) {
-        case SDLK_d: {
-            SDL_Point check = {.x = point.x + 1, .y = point.y};
-            if (!tetris_collisionCheck(check, peice)) {
-                point.x++;
+    SDL_KeyCode key = tetris_getInput();
+    if (!lost) {
+        switch(key) {
+            case SDLK_d: {
+                SDL_Point check = {.x = point.x + 1, .y = point.y};
+                if (!tetris_collisionCheck(check, peice)) {
+                    point.x++;
+                }
+                break;
             }
-            break;
-        }
-        case SDLK_a: {
-            SDL_Point check = {.x = point.x - 1, .y = point.y};
-            if (!tetris_collisionCheck(check, peice)) {
-                point.x--;
+            case SDLK_a: {
+                SDL_Point check = {.x = point.x - 1, .y = point.y};
+                if (!tetris_collisionCheck(check, peice)) {
+                    point.x--;
+                }
+                break;
             }
-            break;
+            case SDLK_s: {
+                fall_speed = 1;
+                break;
+            }
+            default: {
+                fall_speed = 30;
+            }
         }
-        case SDLK_s: {
-            fall_speed = 1;
-            break;
-        }
-        default: {
-            fall_speed = 30;
-        }
-    }
 
-    if (frame % fall_speed == 0) {
-        SDL_Point check = {.x = point.x, .y = point.y + 1};
+        if (frame % fall_speed == 0) {
+            SDL_Point check = {.x = point.x, .y = point.y + 1};
 
-        if (!tetris_collisionCheck(check, peice))  {
-            point.y++;
-        } else{
-            tetris_addToPlaced(peice, point, color);
-            tetris_printPlaced();
-            tetris_pickPeice(&peice, &color);
-            point.y = 0;
-        } 
+            if (!tetris_collisionCheck(check, peice))  {
+                point.y++;
+            } else{
+                tetris_addToPlaced(peice, point, color);
+                tetris_printPlaced();
+                tetris_pickPeice(&peice, &color);
+                if (point.y <= 0) lost = true;
+                point.y = 0;
+            } 
+        }
+
     }
 
     for (uint8_t i = 0; i < placed_peices_count; ++i) {
@@ -332,7 +338,9 @@ void tetris_callback(uint64_t frame) {
         tetris_drawTetromino(renderer, placed_peices[i].peice,
         placed_peices[i].position);
     }
-    /* tetris_drawLoose(); */
+    if (lost){
+        tetris_drawLoose();
+    }
 }
 
 void tetris_update(void (*callback)(uint64_t frame)) {
