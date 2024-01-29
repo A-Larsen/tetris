@@ -287,17 +287,17 @@ void tetris_drawLooseText() {
 void tetris_callback(uint64_t frame) {
 
     static bool lost = false;
-    static SDL_Point point = {.x = 0, .y = 0};
+    static SDL_Point point = {.x = 0, .y = -1};
     static int color = COLOR_RED;
     static uint8_t peice = PEICE_L;
+    static uint8_t fall_speed = 50;
 
-    if (point.y == 0) {
+    if (point.y == -1) {
         Size size;
         tetris_getPeiceSize(peice, &size);
         point.x = (ARENA_WIDTH / 2) - (size.w / 2);
     }
 
-    static uint8_t fall_speed = 50;
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
@@ -337,11 +337,20 @@ void tetris_callback(uint64_t frame) {
             if (!tetris_collisionCheck(check, peice))  {
                 point.y++;
             } else{
-                tetris_addToPlaced(peice, point, color);
                 /* tetris_printPlaced(); */
-                tetris_pickPeice(&peice, &color);
-                if (point.y <= 1) lost = true;
-                point.y = 0;
+                /* Size size; tetris_getPeiceSize(peice, &size); */
+                /* if (size.h > 1 && point.y < 1) { */
+                /*     point.y--; */
+                /* } */
+                if (point.y < 1) {
+                    /* tetris_addToPlaced(peice, point, color); */
+                    lost = true;
+                } else {
+                    /* tetris_addToPlaced(peice, point, color); */
+                    tetris_addToPlaced(peice, point, color);
+                    tetris_pickPeice(&peice, &color);
+                    point.y = -1;
+                }
             } 
         }
 
