@@ -7,13 +7,13 @@
 
 #define SCREEN_WIDTH_PX 400U
 #define SCREEN_HEIGHT_PX 800U
-#define ARENA_WIDTH 8
-#define ARENA_HEIGHT 16
-#define ARENA_SIZE 128
-#define PEICE_WIDTH 4
-#define PEICE_HEIGHT 2
-#define TETROMINOS_DATA_SIZE 8
-#define PEICE_SIZE 50
+#define ARENA_WIDTH 8U
+#define ARENA_HEIGHT 16U
+#define ARENA_SIZE 128U
+#define PEICE_WIDTH 4U
+#define PEICE_HEIGHT 2U
+#define TETROMINOS_DATA_SIZE 8U
+#define PEICE_SIZE 50U
 
 enum {PEICE_I, PEICE_J, PEICE_L, PEICE_O, PEICE_S, PEICE_T, PEICE_Z, 
       PEICE_COUNT};
@@ -33,17 +33,16 @@ typedef struct _PlacedPeice {
 } PlacedPeice;
 
 static uint8_t placed[ARENA_SIZE]; // 16 x 8
-static SDL_Window *window;
-static SDL_Renderer *renderer;
-static SDL_Event event;
-static bool quit = false;
+static SDL_Window *window = NULL;
+static SDL_Renderer *renderer = NULL;
 static uint8_t placed_peices_count = 0;
 static PlacedPeice *placed_peices = NULL;
 static TTF_Font *font = NULL;
 static SDL_Texture *texture_lost_text = NULL;
 static uint8_t flip = FLIP_NORMAL;
+static const char * loose_text = "You Lost";
 
-static SDL_Color colors[] = {
+static const SDL_Color colors[] = {
     [COLOR_RED] = {.r = 217, .g = 100, .b = 89, .a = 255},
     [COLOR_GREEN] = {.r = 88, .g = 140, .b = 126, .a = 255},
     [COLOR_BLUE] = {.r = 146, .g = 161, .b = 185, .a = 255},
@@ -52,7 +51,7 @@ static SDL_Color colors[] = {
 
 // can adventually figure out the mazimum number of peices that could be
 // placed
-uint8_t tetris_tetrominos[7][8] = {
+const uint8_t tetris_tetrominos[7][8] = {
     [PEICE_I] = {0,0,0,0,
                  1,1,1,1},
 
@@ -240,7 +239,7 @@ void tetris_init() {
     }
 
     SDL_Color font_color = {.r = 255, .g = 255, .b =255, .a = 255};
-    SDL_Surface *surface = TTF_RenderText_Solid(font, "You Lost", font_color);
+    SDL_Surface *surface = TTF_RenderText_Solid(font, loose_text, font_color);
 
     if (surface == NULL) {
         fprintf(stderr, "Could not create text surface\n%s", SDL_GetError());
@@ -253,7 +252,7 @@ void tetris_init() {
 void tetris_drawLooseText() {
     int w = 0;
     int h = 0;
-    TTF_SizeText(font, "You Lost", &w, &h);
+    TTF_SizeText(font, loose_text, &w, &h);
 
     SDL_Rect rect = {
         .x = (SCREEN_WIDTH_PX / 2) - (w / 2),
@@ -350,7 +349,9 @@ void tetris_callback(uint64_t frame, SDL_KeyCode key) {
 
 void tetris_update(void (*callback)(uint64_t frame, SDL_KeyCode code)) {
     uint64_t frame = 0;
+    bool quit = false;
     while (!quit) {
+        SDL_Event event;
         uint32_t start = SDL_GetTicks();
         SDL_KeyCode code = 0;
 
