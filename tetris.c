@@ -347,18 +347,18 @@ void tetris_callback(uint64_t frame, SDL_KeyCode key) {
     }
 }
 
-void tetris_update(void (*callback)(uint64_t frame, SDL_KeyCode code)) {
+void tetris_update(void (*callback)(uint64_t frame, SDL_KeyCode key)) {
     uint64_t frame = 0;
     bool quit = false;
     while (!quit) {
         SDL_Event event;
         uint32_t start = SDL_GetTicks();
-        SDL_KeyCode code = 0;
+        SDL_KeyCode key = 0;
 
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
                 case SDL_KEYDOWN:
-                   code =  event.key.keysym.sym;
+                   key =  event.key.keysym.sym;
                    break;
                 case SDL_QUIT: {
                     quit = true;
@@ -367,7 +367,7 @@ void tetris_update(void (*callback)(uint64_t frame, SDL_KeyCode code)) {
             }
         }
 
-        callback(frame, code);
+        callback(frame, key);
 
         uint32_t end = SDL_GetTicks();
         uint32_t elapsed_time = end - start;
