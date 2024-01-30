@@ -13,25 +13,13 @@
 #define PEICE_WIDTH 4
 #define PEICE_HEIGHT 2
 #define TETROMINOS_DATA_SIZE 8
-/* #define GET_PLACED_POSITION(pos) pos.y * ARENA_WIDTH + pos.x; */
-#define PEICE_I 0
-#define PEICE_J 1
-#define PEICE_L 2
-#define PEICE_O 3
-#define PEICE_S 4
-#define PEICE_T 5
-#define PEICE_Z 6
-#define PEICE_COUNT 7
 #define PEICE_SIZE 50
-#define COLOR_RED 0
-#define COLOR_GREEN 1
-#define COLOR_BLUE 2
-#define COLOR_ORANGE 3
-#define COLOR_SIZE 4
-#define FLIP_NORMAL 0
-#define FLIP_LEFT 1
-#define FLIP_RIGHT 2
-#define FLIP_UPSIDEDOWN 3
+
+enum {PEICE_I, PEICE_J, PEICE_L, PEICE_O, PEICE_S, PEICE_T, PEICE_Z, 
+      PEICE_COUNT};
+enum {COLOR_RED, COLOR_GREEN, COLOR_BLUE, COLOR_ORANGE, COLOR_SIZE};
+enum { FLIP_NORMAL, FLIP_LEFT, FLIP_RIGHT, FLIP_UPSIDEDOWN};
+
 
 typedef struct _Size {
     int w;
