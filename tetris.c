@@ -31,6 +31,8 @@ typedef struct _PlacedPeice {
     SDL_Point position;
 } PlacedPeice;
 
+static void update_main(uint64_t frame, SDL_KeyCode key);
+
 static uint8_t placed[ARENA_SIZE]; // 16 x 8
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
@@ -40,6 +42,9 @@ static TTF_Font *font = NULL;
 static SDL_Texture *texture_lost_text = NULL;
 static uint8_t flip = FLIP_NORMAL;
 static const char * loose_text = "You Lost";
+typedef void (*Update_callback)(uint64_t frame, SDL_KeyCode key);
+static Update_callback update = update_main;
+
 
 static const SDL_Color colors[] = {
     [COLOR_RED] = {.r = 217, .g = 100, .b = 89, .a = 255},
@@ -297,10 +302,23 @@ tetris_drawLooseText()
 }
 
 void
-tetris_callback(uint64_t frame, SDL_KeyCode key)
-{
+tetris_drawPlaced() {
+    for (uint8_t i = 0; i < placed_peices_count; ++i) {
+        tetris_drawTetromino(renderer, placed_peices[i].peice,
+        placed_peices[i].position, placed_peices[i].color);
+    }
+}
 
-    static bool lost = false;
+static void
+update_loose(uint64_t frame, SDL_KeyCode key)
+{
+    tetris_drawPlaced();
+    tetris_drawLooseText();
+}
+
+static void
+update_main(uint64_t frame, SDL_KeyCode key)
+{
     static SDL_Point peice_position = {.x = 0, .y = -1};
     static uint8_t peice = PEICE_L;
     static uint8_t fall_speed = 50;
@@ -312,74 +330,65 @@ tetris_callback(uint64_t frame, SDL_KeyCode key)
         peice_position.x = (ARENA_WIDTH / 2) - (size.w / 2);
     }
 
-
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
-    SDL_RenderClear(renderer);
-
     tetris_drawTetromino(renderer, peice, peice_position, color);
 
-    if (!lost) {
-        switch(key) {
-            case SDLK_d: {
-                SDL_Point check = {.x = peice_position.x + 1,
-                                   .y = peice_position.y};
-                if (!tetris_collisionCheck(check, peice)) {
-                    peice_position.x++;
-                }
-                break;
+    switch(key) {
+        case SDLK_d: {
+            SDL_Point check = {.x = peice_position.x + 1,
+                               .y = peice_position.y};
+            if (!tetris_collisionCheck(check, peice)) {
+                peice_position.x++;
             }
-            case SDLK_a: {
-                SDL_Point check = {.x = peice_position.x - 1,
-                                   .y = peice_position.y};
-
-                if (!tetris_collisionCheck(check, peice)) {
-                    peice_position.x--;
-                }
-                break;
-            }
-            case SDLK_s: {
-                fall_speed = 1;
-                break;
-            }
-            default: {
-                fall_speed = 30;
-            }
+            break;
         }
+        case SDLK_a: {
+            SDL_Point check = {.x = peice_position.x - 1,
+                               .y = peice_position.y};
 
-        if (frame % fall_speed == 0) {
-            SDL_Point check = {.x = peice_position.x,
-                               .y = peice_position.y + 1};
-
-            if (!tetris_collisionCheck(check, peice))  {
-                peice_position.y++;
-            } else{
-                if (peice_position.y < 1) {
-                    lost = true;
-                } else {
-                    tetris_addToPlaced(peice, peice_position, color);
-                    tetris_pickPeice(&peice, &color);
-                    peice_position.y = -1;
-                }
-            } 
+            if (!tetris_collisionCheck(check, peice)) {
+                peice_position.x--;
+            }
+            break;
         }
-
+        case SDLK_s: {
+            fall_speed = 1;
+            break;
+        }
+        default: {
+            fall_speed = 30;
+        }
     }
 
-    for (uint8_t i = 0; i < placed_peices_count; ++i) {
-        tetris_drawTetromino(renderer, placed_peices[i].peice,
-        placed_peices[i].position, placed_peices[i].color);
+    if (frame % fall_speed == 0) {
+        SDL_Point check = {.x = peice_position.x,
+                           .y = peice_position.y + 1};
+
+        if (!tetris_collisionCheck(check, peice))  {
+            peice_position.y++;
+        } else{
+            if (peice_position.y < 1) {
+                tetris_addToPlaced(peice, peice_position, color);
+                update = update_loose;
+            } else {
+                tetris_addToPlaced(peice, peice_position, color);
+                tetris_pickPeice(&peice, &color);
+                peice_position.y = -1;
+            }
+        } 
     }
-    if (lost){
-        tetris_drawLooseText();
-    }
+
+    tetris_drawPlaced();
 }
 
 void
-tetris_update(void (*callback)(uint64_t frame, SDL_KeyCode key))
+tetris_update()
 {
     uint64_t frame = 0;
     bool quit = false;
     while (!quit) {
+        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+        SDL_RenderClear(renderer);
+
         SDL_Event event;
         uint32_t start = SDL_GetTicks();
         SDL_KeyCode key = 0;
@@ -396,7 +405,7 @@ tetris_update(void (*callback)(uint64_t frame, SDL_KeyCode key))
             }
         }
 
-        callback(frame, key);
+        update(frame, key);
 
         uint32_t end = SDL_GetTicks();
         uint32_t elapsed_time = end - start;
@@ -425,7 +434,7 @@ int
 main(void)
 {
     tetris_init();
-    tetris_update(tetris_callback);
+    tetris_update();
     tetris_quit();
     return 0;
 }
