@@ -250,21 +250,6 @@ void tetris_init() {
     SDL_FreeSurface(surface);
 }
 
-
-int tetris_getInput() {
-    while(SDL_PollEvent(&event)) {
-        switch(event.type) {
-            case SDL_KEYDOWN:
-                return event.key.keysym.sym;
-            case SDL_QUIT: {
-                quit = true;
-                break;
-            }
-        }
-    }
-    return 0;
-}
-
 void tetris_drawLooseText() {
     int w = 0;
     int h = 0;
@@ -291,7 +276,7 @@ void tetris_drawLooseText() {
 
 }
 
-void tetris_callback(uint64_t frame) {
+void tetris_callback(uint64_t frame, SDL_KeyCode key) {
 
     static bool lost = false;
     static SDL_Point point = {.x = 0, .y = -1};
@@ -309,10 +294,8 @@ void tetris_callback(uint64_t frame) {
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
     SDL_RenderClear(renderer);
 
-    /* tetris_setColor(color); */
     tetris_drawTetromino(renderer, peice, point, color);
 
-    SDL_KeyCode key = tetris_getInput();
     if (!lost) {
         switch(key) {
             case SDLK_d: {
@@ -357,7 +340,6 @@ void tetris_callback(uint64_t frame) {
     }
 
     for (uint8_t i = 0; i < placed_peices_count; ++i) {
-        /* tetris_setColor(placed_peices[i].color); */
         tetris_drawTetromino(renderer, placed_peices[i].peice,
         placed_peices[i].position, placed_peices[i].color);
     }
@@ -366,12 +348,25 @@ void tetris_callback(uint64_t frame) {
     }
 }
 
-void tetris_update(void (*callback)(uint64_t frame)) {
+void tetris_update(void (*callback)(uint64_t frame, SDL_KeyCode code)) {
     uint64_t frame = 0;
     while (!quit) {
         uint32_t start = SDL_GetTicks();
+        SDL_KeyCode code = 0;
 
-        callback(frame);
+        while(SDL_PollEvent(&event)) {
+            switch(event.type) {
+                case SDL_KEYDOWN:
+                   code =  event.key.keysym.sym;
+                   break;
+                case SDL_QUIT: {
+                    quit = true;
+                    break;
+                }
+            }
+        }
+
+        callback(frame, code);
 
         uint32_t end = SDL_GetTicks();
         uint32_t elapsed_time = end - start;
