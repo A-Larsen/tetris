@@ -122,8 +122,6 @@ set_kbrate(int delay, int rate)
     xkb->ctrls->repeat_interval = 1000 / rate;
     XkbSetControls(dpy, XkbRepeatKeysMask, xkb);
     XkbFreeKeyboard(xkb, 0, True);
-    XKeyboardControl values = { .auto_repeat_mode = 1 };
-    XChangeKeyboardControl(dpy, KBAutoRepeatMode, &values);
     XCloseDisplay(dpy);
 }
 
