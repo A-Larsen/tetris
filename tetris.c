@@ -249,7 +249,7 @@ tetris_collisionCheck(SDL_Point position)
     uint8_t placed_pos = tetris_getPlacedPosition(position);
 
     if (position.x + size.start_x + size.w > ARENA_WIDTH  ||
-        position.y + size.h > ARENA_HEIGHT ||
+        position.y + size.start_y + size.h > ARENA_HEIGHT ||
         position.x < -size.start_x) {
         return true;
     }
@@ -281,7 +281,6 @@ tetris_init()
     srand(time(NULL));
     memset(&placed, 0, sizeof(uint8_t) * ARENA_SIZE);
     tetris_pickPeice();
-    tetris_rotatePiece(FLIP_LEFT);
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "could not initialize SDL2\n%s", SDL_GetError());
