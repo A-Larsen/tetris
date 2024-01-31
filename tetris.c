@@ -25,6 +25,8 @@ enum { FLIP_NORMAL, FLIP_LEFT, FLIP_RIGHT, FLIP_UPSIDEDOWN};
 typedef struct _Size {
     int w;
     int h;
+    uint8_t start_x;
+    uint8_t start_y;
 } Size;
 
 typedef struct _PlacedPeice {
@@ -118,13 +120,19 @@ tetris_setColor(uint8_t color)
 void
 tetris_getPeiceSize(Size *size)
 {
-    size->w = 0;
-    size->h = 0;
+    memset(size, 0, sizeof(Size));
+
+    bool foundStartx = false;
+    bool foundStarty = false;
 
     for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
         for (uint8_t y = 0; y < PIECE_HEIGHT; ++y) {
             uint8_t i = y * PIECE_WIDTH + x;
             if (current_piece[i]) {
+                if (!foundStartx) {
+                    size->start_x = x;
+                    foundStartx = true;
+                }
                 size->w++;
                 break;
             }
@@ -135,6 +143,10 @@ tetris_getPeiceSize(Size *size)
         for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
             uint8_t i = y * PIECE_WIDTH + x;
             if (current_piece[i]) {
+                if (!foundStarty) {
+                    size->start_y = y;
+                    foundStarty = true;
+                }
                 size->h++;
                 break;
             }
@@ -159,9 +171,6 @@ tetris_rotatePiece(uint8_t flip)
 
         switch(flip) {
             case FLIP_LEFT: {
-                /* uint8_t temp = x; */
-                /* x = y; */
-                /* y = temp; */
                 uint8_t j = x * PIECE_WIDTH + y;
                 temp_piece[i] = current_piece[j];
 
@@ -240,9 +249,9 @@ tetris_collisionCheck(SDL_Point position)
     Size size; tetris_getPeiceSize(&size);
     uint8_t placed_pos = tetris_getPlacedPosition(position);
 
-    if (position.x + size.w > ARENA_WIDTH  ||
+    if (position.x + size.start_x + size.w > ARENA_WIDTH  ||
         position.y + size.h > ARENA_HEIGHT ||
-        position.x < 0) {
+        position.x < -size.start_x) {
         return true;
     }
 
