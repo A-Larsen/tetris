@@ -120,8 +120,6 @@ set_kbrate(int delay, int rate)
     old_repeat_interval = xkb->ctrls->repeat_interval;
     xkb->ctrls->repeat_delay = delay;
     xkb->ctrls->repeat_interval = 1000 / rate;
-    printf("repeat_delay: %d\n", xkb->ctrls->repeat_delay);
-    printf("repeat_interval: %d\n", xkb->ctrls->repeat_interval);
     XkbSetControls(dpy, XkbRepeatKeysMask, xkb);
     XkbFreeKeyboard(xkb, 0, True);
     XKeyboardControl values = { .auto_repeat_mode = 1 };
