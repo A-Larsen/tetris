@@ -49,7 +49,6 @@ typedef void (*Update_callback)(uint64_t frame, SDL_KeyCode key);
 static uint8_t current_piece[PIECE_SIZE];
 static uint8_t current_piece_color = COLOR_RED;
 static Update_callback update = update_main;
-static uint8_t rotation_amount = 3;
 
 static const SDL_Color colors[] = {
     [COLOR_RED] = {.r = 217, .g = 100, .b = 89, .a = 255},
@@ -163,11 +162,12 @@ void tetris_getXY(uint8_t i, int *x, int *y) {
 void
 tetris_rotatePiece()
 {
+    static uint8_t rotation_amount = 0;
     uint8_t temp_piece[PIECE_SIZE];
     memset(temp_piece, 0, sizeof(uint8_t) * PIECE_SIZE);
     memcpy(&temp_piece, &current_piece, sizeof(uint8_t) * PIECE_SIZE);
 
-    for (uint8_t i = 0; i < ++rotation_amount; ++i) {
+    for (uint8_t i = 0; i < (++rotation_amount) % 4; ++i) {
         for (uint8_t j = 0; j < TETROMINOS_DATA_SIZE; ++j) {
             int x, y; tetris_getXY(j, &x, &y);
 
