@@ -46,6 +46,12 @@ static const char * loose_text = "You Lost";
 typedef void (*Update_callback)(uint64_t frame, SDL_KeyCode key);
 static Update_callback update = update_main;
 
+// bounds checking
+void tetris_addToArena(uint8_t i) {
+    if ( i < ARENA_SIZE  && i >= 0)
+        placed[i] = 1;
+}
+
 
 static const SDL_Color colors[] = {
     [COLOR_RED] = {.r = 217, .g = 100, .b = 89, .a = 255},
@@ -186,7 +192,8 @@ tetris_addToPlaced(uint8_t piece, SDL_Point position, uint8_t color)
             uint8_t piece_i = y * PIECE_WIDTH + x;
             uint8_t placed_i = y * ARENA_WIDTH + x;
             if (tetris_tetrominos[piece][piece_i]) {
-                placed[pos + placed_i] = 1;
+                /* placed[pos + placed_i] = 1; */
+                tetris_addToArena(pos + placed_i);
             }
         }
         
