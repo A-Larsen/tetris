@@ -18,6 +18,8 @@
 #define TETROMINOS_DATA_SIZE 16U
 #define PIECE_SIZE_PX 50U
 #define TETROMINOS_COUNT 7U
+# define XKBDDELAY_DEFAULT 660
+# define XKBDRATE_DEFAULT (1000/40)
 
 enum {PIECE_I, PIECE_J, PIECE_L, PIECE_O, PIECE_S, PIECE_T, PIECE_Z, 
       PIECE_COUNT};
@@ -101,18 +103,30 @@ const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
 };
 
 void
-set_kbrate(int delay, int interval)
+set_kbrate(int delay, int rate)
 {
-    Display *dpy = XOpenDisplay(":0");
+    Display *dpy = XOpenDisplay(NULL);
+    if (dpy == NULL) {
+        fprintf(stderr, 
+               "unable to connect to dispaly: %s\n", XDisplayName(NULL));
+    }
     XkbDescPtr xkb = XkbAllocKeyboard();
-    if (!xkb) return;
+    if (!xkb) {
+        fprintf(stderr, 
+               "unable to allocate x11 keyboard\n");
+    };
     XkbGetControls(dpy, XkbRepeatKeysMask, xkb);
     old_repeat_delay = xkb->ctrls->repeat_delay;
     old_repeat_interval = xkb->ctrls->repeat_interval;
     xkb->ctrls->repeat_delay = delay;
-    xkb->ctrls->repeat_interval = interval;
+    xkb->ctrls->repeat_interval = 1000 / rate;
+    printf("repeat_delay: %d\n", xkb->ctrls->repeat_delay);
+    printf("repeat_interval: %d\n", xkb->ctrls->repeat_interval);
     XkbSetControls(dpy, XkbRepeatKeysMask, xkb);
     XkbFreeKeyboard(xkb, 0, True);
+    XKeyboardControl values = { .auto_repeat_mode = 1 };
+    XChangeKeyboardControl(dpy, KBAutoRepeatMode, &values);
+    XCloseDisplay(dpy);
 }
 
 void
@@ -297,7 +311,7 @@ tetris_pickPeice()
 void
 tetris_init()
 {
-    set_kbrate(600, 25);
+    set_kbrate(180, 60);
     srand(time(NULL));
     memset(&placed, 0, sizeof(uint8_t) * ARENA_SIZE);
     tetris_pickPeice();
