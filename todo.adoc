@@ -1,0 +1,6 @@
+== TODO
+
+- [ ] Add rotation
+        With the way everything is currently set up rotation would be difficult.
+        I make the dementions of the tetrinomios arrays a cube (equal width and
+        height). Rotation would be much simpler.

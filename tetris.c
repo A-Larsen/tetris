@@ -10,13 +10,14 @@
 #define ARENA_WIDTH 8U
 #define ARENA_HEIGHT 16U
 #define ARENA_SIZE 128U
-#define PEICE_WIDTH 4U
-#define PEICE_HEIGHT 2U
-#define TETROMINOS_DATA_SIZE 8U
-#define PEICE_SIZE 50U
+#define PIECE_WIDTH 4U
+#define PIECE_HEIGHT 4U
+#define TETROMINOS_DATA_SIZE 16U
+#define PIECE_SIZE_PX 50U
+#define TETROMINOS_COUNT 7U
 
-enum {PEICE_I, PEICE_J, PEICE_L, PEICE_O, PEICE_S, PEICE_T, PEICE_Z, 
-      PEICE_COUNT};
+enum {PIECE_I, PIECE_J, PIECE_L, PIECE_O, PIECE_S, PIECE_T, PIECE_Z, 
+      PIECE_COUNT};
 enum {COLOR_RED, COLOR_GREEN, COLOR_BLUE, COLOR_ORANGE, COLOR_SIZE};
 enum { FLIP_NORMAL, FLIP_LEFT, FLIP_RIGHT, FLIP_UPSIDEDOWN};
 
@@ -26,7 +27,7 @@ typedef struct _Size {
 } Size;
 
 typedef struct _PlacedPeice {
-    uint8_t peice;
+    uint8_t piece;
     uint8_t color;
     SDL_Point position;
 } PlacedPeice;
@@ -36,8 +37,8 @@ static void update_main(uint64_t frame, SDL_KeyCode key);
 static uint8_t placed[ARENA_SIZE]; // 16 x 8
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
-static uint8_t placed_peices_count = 0;
-static PlacedPeice *placed_peices = NULL;
+static uint8_t placed_pieces_count = 0;
+static PlacedPeice *placed_pieces = NULL;
 static TTF_Font *font = NULL;
 static SDL_Texture *texture_lost_text = NULL;
 static uint8_t flip = FLIP_NORMAL;
@@ -53,35 +54,50 @@ static const SDL_Color colors[] = {
     [COLOR_ORANGE] = {.r = 242, .g = 174, .b = 114, .a = 255},
 };
 
-// can adventually figure out the mazimum number of peices that could be
-// placed
-const uint8_t tetris_tetrominos[7][8] = {
-    [PEICE_I] = {0,0,0,0,
-                 1,1,1,1},
+const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
+                               [PIECE_WIDTH * PIECE_HEIGHT] = {
+    // each peice has 4 ones
+    [PIECE_I] = {0,0,0,0,
+                 1,1,1,1,
+                 0,0,0,0,
+                 0,0,0,0},
 
-    [PEICE_J] = {1,0,0,0,
-                 1,1,1,0},
+    [PIECE_J] = {0,0,0,0,
+                 1,0,0,0,
+                 1,1,1,0,
+                 0,0,0,0},
 
-    [PEICE_L] = {0,0,1,0,
-                 1,1,1,0},
+    [PIECE_L] = {0,0,0,0,
+                 0,0,1,0,
+                 1,1,1,0,
+                 0,0,0,0},
 
-    [PEICE_O] = {1,1,0,0,
-                 1,1,0,0},
+    [PIECE_O] = {0,0,0,0,
+                 0,1,1,0,
+                 0,1,1,0,
+                 0,0,0,0},
 
-    [PEICE_S] = {0,1,1,0,
-                 1,1,0,0},
+    [PIECE_S] = {0,0,0,0,
+                 0,1,1,0,
+                 1,1,0,0,
+                 0,0,0,0},
 
-    [PEICE_T] = {0,1,0,0,
-                 1,1,1,0},
+    [PIECE_T] = {0,0,0,0,
+                 0,1,0,0,
+                 1,1,1,0,
+                 0,0,0,0},
 
-    [PEICE_Z] = {1,1,0,0,
-                 0,1,1,0},
+    [PIECE_Z] = {0,0,0,0,
+                 1,1,0,0,
+                 0,1,1,0,
+                 0,0,0,0},
 };
 
 uint8_t
 tetris_getPlacedPosition(SDL_Point pos)
 {
-    return pos.y * ARENA_WIDTH + pos.x;
+    uint8_t i = pos.y * ARENA_WIDTH + pos.x;
+    return i < ARENA_SIZE ? i : ARENA_SIZE - 1;
 }
 
 void
@@ -92,58 +108,51 @@ tetris_setColor(uint8_t color)
 }
 
 void
-tetris_getPeiceSize(uint8_t peice, Size *size)
+tetris_getPeiceSize(uint8_t piece, Size *size)
 {
     size->w = 0;
     size->h = 1;
 
-    for (uint8_t i = 0; i < PEICE_WIDTH; ++i) {
-        bool top = tetris_tetrominos[peice][i];
-        bool bottom = tetris_tetrominos[peice][i + PEICE_WIDTH];
-
-        if (top && bottom) {
-            size->h = 2;
+    for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
+        for (uint8_t y = 0; y < PIECE_HEIGHT; ++y) {
+            uint8_t i = y * PIECE_WIDTH + x;
+            if (tetris_tetrominos[piece][i]) {
+                size->w++;
+                break;
+            }
         }
+    }
 
-        if (top || bottom) {
-            size->w++;
+    for (uint8_t y = 0; y < PIECE_HEIGHT; ++y) {
+        for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
+            uint8_t i = y * PIECE_WIDTH + x;
+            if (tetris_tetrominos[piece][i]) {
+                size->h++;
+                break;
+            }
         }
     }
 }
 
-void
-tetris_scanPeice(uint8_t peice, uint8_t i, int *x, int *y)
-{
-    *x = i % PEICE_WIDTH;
-    *y = floor((float)i / PEICE_WIDTH);
-
-    switch(flip) {
-        case FLIP_RIGHT: {
-            *x = (*x - 1) * -1;
-        }
-        case FLIP_LEFT: {
-            uint8_t temp = *y;
-            *y = *x;
-            *x = temp;
-            break;
-        }
-    }
-
+void tetris_getXY(uint8_t i, int *x, int *y) {
+    *x = i % PIECE_WIDTH;
+    *y = floor((float)i / PIECE_WIDTH);
 }
 
 uint8_t
-tetris_drawTetromino(SDL_Renderer *renderer, uint8_t peice, SDL_Point position,
+tetris_drawTetromino(SDL_Renderer *renderer, uint8_t piece, SDL_Point position,
                      uint8_t color)
 {
     for (int i = 0; i < TETROMINOS_DATA_SIZE; ++i) {
-        if (!tetris_tetrominos[peice][i]) continue;
-        int x, y;
-        tetris_scanPeice(peice, i, &x, &y);
+        if (!tetris_tetrominos[piece][i]) continue;
+        int x, y; tetris_getXY(i, &x, &y);
+        /* int x = i % PIECE_WIDTH; */
+        /* int y = floor((float)i / PIECE_WIDTH); */
 
         SDL_Rect rect = {
-            .x = (x + position.x) * PEICE_SIZE, .y = (y + position.y) *
-                 PEICE_SIZE,
-            .w = PEICE_SIZE, .h = PEICE_SIZE
+            .x = (x + position.x) * PIECE_SIZE_PX, .y = (y + position.y) *
+                 PIECE_SIZE_PX,
+            .w = PIECE_SIZE_PX, .h = PIECE_SIZE_PX
         };
         tetris_setColor(color);
         SDL_RenderFillRect(renderer, &rect);
@@ -151,29 +160,6 @@ tetris_drawTetromino(SDL_Renderer *renderer, uint8_t peice, SDL_Point position,
         SDL_RenderDrawRect(renderer, &rect);
     }
     return color;
-}
-
-void
-tetris_addToPlaced(uint8_t peice, SDL_Point position, uint8_t color)
-{
-
-    uint8_t pos = tetris_getPlacedPosition(position);
-
-    for (int i = 0; i < PEICE_WIDTH; ++i) {
-        if (tetris_tetrominos[peice][i]) {
-            placed[pos + i] = 1;
-        }
-        if (tetris_tetrominos[peice][i + PEICE_WIDTH]) {
-            placed[pos + ARENA_WIDTH + i] = 1;
-        }
-    }
-
-    uint8_t i = placed_peices_count++;
-    placed_peices = realloc(placed_peices, sizeof(PlacedPeice) *
-                           placed_peices_count);
-    memcpy(&placed_peices[i].position, &position, sizeof(SDL_Point));
-    memcpy(&placed_peices[i].color, &color, sizeof(uint8_t));
-    memcpy(&placed_peices[i].peice, &peice, sizeof(uint8_t));
 }
 
 void
@@ -191,11 +177,47 @@ tetris_printPlaced()
     }
 }
 
-bool
-tetris_collisionCheck(SDL_Point position, uint8_t peice)
+void
+tetris_addToPlaced(uint8_t piece, SDL_Point position, uint8_t color)
 {
 
-    Size size; tetris_getPeiceSize(peice, &size);
+    uint8_t pos = tetris_getPlacedPosition(position);
+
+    /* for (int i = 0; i < PIECE_WIDTH; ++i) { */
+    /*     if (tetris_tetrominos[piece][i]) { */
+    /*         placed[pos + i] = 1; */
+    /*     } */
+    /*     if (tetris_tetrominos[piece][i + PIECE_WIDTH]) { */
+    /*         placed[pos + ARENA_WIDTH + i] = 1; */
+    /*     } */
+    /* } */
+    /* for (uint8_t i = 0; i < TETROMINOS_DATA_SIZE; ++i) { */
+    /*     if (tetris_tetrominos[piece][i]) { */
+    /*         placed[pos + i] = 1; */
+    /*     } */
+        
+    /* } */
+    for (uint8_t piece_i = 0; piece_i < TETROMINOS_DATA_SIZE; ++piece_i) {
+        int x, y; tetris_getXY(piece_i, &x, &y);
+        SDL_Point offset = {.x = (piece_i % PIECE_WIDTH) + position.x,
+                            .y = position.y + (ARENA_WIDTH * y)};
+        uint8_t placed_i = tetris_getPlacedPosition(offset);
+    }
+
+    uint8_t i = placed_pieces_count++;
+    placed_pieces = realloc(placed_pieces, sizeof(PlacedPeice) *
+                           placed_pieces_count);
+    memcpy(&placed_pieces[i].position, &position, sizeof(SDL_Point));
+    memcpy(&placed_pieces[i].color, &color, sizeof(uint8_t));
+    memcpy(&placed_pieces[i].piece, &piece, sizeof(uint8_t));
+    tetris_printPlaced();
+}
+
+bool
+tetris_collisionCheck(SDL_Point position, uint8_t piece)
+{
+
+    Size size; tetris_getPeiceSize(piece, &size);
     uint8_t i = tetris_getPlacedPosition(position);
 
     if (position.x + size.w > ARENA_WIDTH  ||
@@ -204,23 +226,26 @@ tetris_collisionCheck(SDL_Point position, uint8_t peice)
         return true;
     }
 
-    for (uint8_t i = 0; i < PEICE_WIDTH; ++i) {
-        SDL_Point offset = {.x = i + position.x, .y = position.y};
-        uint8_t top = tetris_getPlacedPosition(offset);
-        uint8_t bottom = top + ARENA_WIDTH;
-        if ((tetris_tetrominos[peice][i] && placed[top]) ||
-           (tetris_tetrominos[peice][i + PEICE_WIDTH] && placed[bottom])) {
-            return true;
-        }
+    /* for (uint8_t i = 0; i < PIECE_WIDTH; ++i) { */
+    /*     SDL_Point offset = {.x = i + position.x, .y = position.y}; */
+    /*     uint8_t top = tetris_getPlacedPosition(offset); */
+    /*     uint8_t bottom = top + ARENA_WIDTH; */
+    /*     if ((tetris_tetrominos[piece][i] && placed[top]) || */
+    /*        (tetris_tetrominos[piece][i + PIECE_WIDTH] && placed[bottom])) { */
+    /*         return true; */
+    /*     } */
+    /* } */
+
+    for (uint8_t piece_i = 0; piece_i < TETROMINOS_DATA_SIZE; ++piece_i) {
     }
 
     return false;
 }
 
 void
-tetris_pickPeice(uint8_t *peice, int *color)
+tetris_pickPeice(uint8_t *piece, int *color)
 {
-    *peice = (float)((float)rand() / (float)RAND_MAX) * PEICE_COUNT;
+    *piece = (float)((float)rand() / (float)RAND_MAX) * PIECE_COUNT;
     *color = ((*color) + 1) % COLOR_SIZE;
 }
 
@@ -303,9 +328,9 @@ tetris_drawLooseText()
 
 void
 tetris_drawPlaced() {
-    for (uint8_t i = 0; i < placed_peices_count; ++i) {
-        tetris_drawTetromino(renderer, placed_peices[i].peice,
-        placed_peices[i].position, placed_peices[i].color);
+    for (uint8_t i = 0; i < placed_pieces_count; ++i) {
+        tetris_drawTetromino(renderer, placed_pieces[i].piece,
+        placed_pieces[i].position, placed_pieces[i].color);
     }
 }
 
@@ -319,34 +344,34 @@ update_loose(uint64_t frame, SDL_KeyCode key)
 static void
 update_main(uint64_t frame, SDL_KeyCode key)
 {
-    static SDL_Point peice_position = {.x = 0, .y = -1};
-    static uint8_t peice = PEICE_L;
+    static SDL_Point piece_position = {.x = 0, .y = -1};
+    static uint8_t piece = PIECE_L;
     static uint8_t fall_speed = 50;
     static int color = COLOR_RED;
 
-    if (peice_position.y == -1) {
+    if (piece_position.y == -1) {
         Size size;
-        tetris_getPeiceSize(peice, &size);
-        peice_position.x = (ARENA_WIDTH / 2) - (size.w / 2);
+        tetris_getPeiceSize(piece, &size);
+        piece_position.x = (ARENA_WIDTH / 2) - (size.w / 2);
     }
 
-    tetris_drawTetromino(renderer, peice, peice_position, color);
+    tetris_drawTetromino(renderer, piece, piece_position, color);
 
     switch(key) {
         case SDLK_d: {
-            SDL_Point check = {.x = peice_position.x + 1,
-                               .y = peice_position.y};
-            if (!tetris_collisionCheck(check, peice)) {
-                peice_position.x++;
+            SDL_Point check = {.x = piece_position.x + 1,
+                               .y = piece_position.y};
+            if (!tetris_collisionCheck(check, piece)) {
+                piece_position.x++;
             }
             break;
         }
         case SDLK_a: {
-            SDL_Point check = {.x = peice_position.x - 1,
-                               .y = peice_position.y};
+            SDL_Point check = {.x = piece_position.x - 1,
+                               .y = piece_position.y};
 
-            if (!tetris_collisionCheck(check, peice)) {
-                peice_position.x--;
+            if (!tetris_collisionCheck(check, piece)) {
+                piece_position.x--;
             }
             break;
         }
@@ -360,19 +385,19 @@ update_main(uint64_t frame, SDL_KeyCode key)
     }
 
     if (frame % fall_speed == 0) {
-        SDL_Point check = {.x = peice_position.x,
-                           .y = peice_position.y + 1};
+        SDL_Point check = {.x = piece_position.x,
+                           .y = piece_position.y + 1};
 
-        if (!tetris_collisionCheck(check, peice))  {
-            peice_position.y++;
+        if (!tetris_collisionCheck(check, piece))  {
+            piece_position.y++;
         } else{
-            if (peice_position.y < 1) {
-                tetris_addToPlaced(peice, peice_position, color);
+            if (piece_position.y < 1) {
+                tetris_addToPlaced(piece, piece_position, color);
                 update = update_loose;
             } else {
-                tetris_addToPlaced(peice, peice_position, color);
-                tetris_pickPeice(&peice, &color);
-                peice_position.y = -1;
+                tetris_addToPlaced(piece, piece_position, color);
+                tetris_pickPeice(&piece, &color);
+                piece_position.y = -1;
             }
         } 
     }
@@ -425,7 +450,7 @@ tetris_quit()
 {
     SDL_DestroyWindow(window);
     SDL_Quit();
-    free(placed_peices);
+    free(placed_pieces);
     TTF_CloseFont(font);
     SDL_DestroyTexture(texture_lost_text);
 }
