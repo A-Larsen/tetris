@@ -382,6 +382,9 @@ update_main(uint64_t frame, SDL_KeyCode key)
             // fix the case when the pieces height is greater than
             // the screen space available
             if (piece_position.y < 0) {
+                Size size;
+                tetris_getPeiceSize(piece, &size);
+                if (size.h > 1) piece_position.y--;
                 tetris_addToPlaced(piece, piece_position, color);
                 update = update_loose;
             } else {
