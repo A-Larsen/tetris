@@ -483,11 +483,11 @@ tetris_update()
 void
 tetris_quit()
 {
+    TTF_CloseFont(font);
+    SDL_DestroyTexture(texture_lost_text);
     SDL_DestroyWindow(window);
     SDL_Quit();
     free(placed_pieces);
-    TTF_CloseFont(font);
-    SDL_DestroyTexture(texture_lost_text);
 }
 
 int
