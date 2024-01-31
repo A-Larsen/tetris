@@ -12,6 +12,7 @@
 #define ARENA_SIZE 128U
 #define PIECE_WIDTH 4U
 #define PIECE_HEIGHT 4U
+#define PIECE_SIZE 16U
 #define TETROMINOS_DATA_SIZE 16U
 #define PIECE_SIZE_PX 50U
 #define TETROMINOS_COUNT 7U
@@ -27,7 +28,7 @@ typedef struct _Size {
 } Size;
 
 typedef struct _PlacedPeice {
-    uint8_t piece;
+    uint8_t piece[PIECE_SIZE];
     uint8_t color;
     SDL_Point position;
 } PlacedPeice;
@@ -44,13 +45,9 @@ static SDL_Texture *texture_lost_text = NULL;
 static uint8_t flip = FLIP_NORMAL;
 static const char * loose_text = "You Lost";
 typedef void (*Update_callback)(uint64_t frame, SDL_KeyCode key);
+static uint8_t current_piece[PIECE_SIZE];
+static uint8_t current_piece_color = COLOR_RED;
 static Update_callback update = update_main;
-
-// bounds checking
-void tetris_addToArena(uint8_t i) {
-    if (i < ARENA_SIZE && i >= 0) placed[i] = 1;
-}
-
 
 static const SDL_Color colors[] = {
     [COLOR_RED] = {.r = 217, .g = 100, .b = 89, .a = 255},
@@ -60,7 +57,7 @@ static const SDL_Color colors[] = {
 };
 
 const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
-                               [PIECE_WIDTH * PIECE_HEIGHT] = {
+                               [PIECE_SIZE] = {
     // each peice has 4 ones
     [PIECE_I] = {0,0,0,0,
                  1,1,1,1,
@@ -98,6 +95,12 @@ const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
                  0,0,0,0},
 };
 
+// bounds checking
+void
+tetris_addToArena(uint8_t i) {
+    if (i < ARENA_SIZE && i >= 0) placed[i] = 1;
+}
+
 uint8_t
 tetris_getPlacedPosition(SDL_Point pos)
 {
@@ -113,7 +116,7 @@ tetris_setColor(uint8_t color)
 }
 
 void
-tetris_getPeiceSize(uint8_t piece, Size *size)
+tetris_getPeiceSize(Size *size)
 {
     size->w = 0;
     size->h = 1;
@@ -121,7 +124,7 @@ tetris_getPeiceSize(uint8_t piece, Size *size)
     for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
         for (uint8_t y = 0; y < PIECE_HEIGHT; ++y) {
             uint8_t i = y * PIECE_WIDTH + x;
-            if (tetris_tetrominos[piece][i]) {
+            if (current_piece[i]) {
                 size->w++;
                 break;
             }
@@ -131,7 +134,7 @@ tetris_getPeiceSize(uint8_t piece, Size *size)
     for (uint8_t y = 0; y < PIECE_HEIGHT; ++y) {
         for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
             uint8_t i = y * PIECE_WIDTH + x;
-            if (tetris_tetrominos[piece][i]) {
+            if (current_piece[i]) {
                 size->h++;
                 break;
             }
@@ -144,12 +147,12 @@ void tetris_getXY(uint8_t i, int *x, int *y) {
     *y = floor((float)i / PIECE_WIDTH);
 }
 
-uint8_t
-tetris_drawTetromino(SDL_Renderer *renderer, uint8_t piece, SDL_Point position,
-                     uint8_t color)
+void
+tetris_drawTetromino(SDL_Renderer *renderer, uint8_t piece[PIECE_SIZE],
+                     SDL_Point position, uint8_t color)
 {
     for (int i = 0; i < TETROMINOS_DATA_SIZE; ++i) {
-        if (!tetris_tetrominos[piece][i]) continue;
+        if (!piece[i]) continue;
         int x, y; tetris_getXY(i, &x, &y);
 
         SDL_Rect rect = {
@@ -162,7 +165,6 @@ tetris_drawTetromino(SDL_Renderer *renderer, uint8_t piece, SDL_Point position,
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderDrawRect(renderer, &rect);
     }
-    return color;
 }
 
 void
@@ -181,7 +183,7 @@ tetris_printPlaced()
 }
 
 void
-tetris_addToPlaced(uint8_t piece, SDL_Point position, uint8_t color)
+tetris_addToPlaced(SDL_Point position)
 {
 
     uint8_t pos = tetris_getPlacedPosition(position);
@@ -190,7 +192,7 @@ tetris_addToPlaced(uint8_t piece, SDL_Point position, uint8_t color)
         for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
             uint8_t piece_i = y * PIECE_WIDTH + x;
             uint8_t placed_i = y * ARENA_WIDTH + x;
-            if (tetris_tetrominos[piece][piece_i])
+            if (current_piece[piece_i])
                 tetris_addToArena(pos + placed_i);
         }
     }
@@ -199,17 +201,18 @@ tetris_addToPlaced(uint8_t piece, SDL_Point position, uint8_t color)
     placed_pieces = realloc(placed_pieces, sizeof(PlacedPeice) *
                            placed_pieces_count);
     memcpy(&placed_pieces[i].position, &position, sizeof(SDL_Point));
-    memcpy(&placed_pieces[i].color, &color, sizeof(uint8_t));
-    memcpy(&placed_pieces[i].piece, &piece, sizeof(uint8_t));
+    memcpy(&placed_pieces[i].color, &current_piece_color, sizeof(uint8_t));
+    memcpy(&placed_pieces[i].piece, &current_piece, sizeof(uint8_t) *
+                                    PIECE_SIZE);
     tetris_printPlaced();
     printf("\n");
 }
 
 bool
-tetris_collisionCheck(SDL_Point position, uint8_t piece)
+tetris_collisionCheck(SDL_Point position)
 {
 
-    Size size; tetris_getPeiceSize(piece, &size);
+    Size size; tetris_getPeiceSize(&size);
     uint8_t placed_pos = tetris_getPlacedPosition(position);
 
     if (position.x + size.w > ARENA_WIDTH  ||
@@ -222,7 +225,7 @@ tetris_collisionCheck(SDL_Point position, uint8_t piece)
         for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
             uint8_t piece_i = y * PIECE_WIDTH + x;
             uint8_t placed_i = placed_pos + (y * ARENA_WIDTH + x);
-            if (tetris_tetrominos[piece][piece_i] && placed[placed_i]) 
+            if (current_piece[piece_i] && placed[placed_i]) 
                 return true;
         }
     }
@@ -231,10 +234,12 @@ tetris_collisionCheck(SDL_Point position, uint8_t piece)
 }
 
 void
-tetris_pickPeice(uint8_t *piece, int *color)
+tetris_pickPeice()
 {
-    *piece = (float)((float)rand() / (float)RAND_MAX) * PIECE_COUNT;
-    *color = ((*color) + 1) % COLOR_SIZE;
+    uint8_t piece = (float)((float)rand() / (float)RAND_MAX) * PIECE_COUNT;
+    memcpy(&current_piece, &tetris_tetrominos[piece], sizeof(uint8_t) *
+           PIECE_SIZE);
+    current_piece_color = ((current_piece_color) + 1) % COLOR_SIZE;
 }
 
 void
@@ -242,6 +247,7 @@ tetris_init()
 {
     srand(time(NULL));
     memset(&placed, 0, sizeof(uint8_t) * ARENA_SIZE);
+    tetris_pickPeice();
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "could not initialize SDL2\n%s", SDL_GetError());
@@ -332,23 +338,22 @@ static void
 update_main(uint64_t frame, SDL_KeyCode key)
 {
     static SDL_Point piece_position = {.x = 0, .y = -1};
-    static uint8_t piece = PIECE_L;
     static uint8_t fall_speed = 50;
-    static int color = COLOR_RED;
 
     if (piece_position.y == -1) {
         Size size;
-        tetris_getPeiceSize(piece, &size);
+        tetris_getPeiceSize(&size);
         piece_position.x = (ARENA_WIDTH / 2) - (size.w / 2);
     }
 
-    tetris_drawTetromino(renderer, piece, piece_position, color);
+    tetris_drawTetromino(renderer, current_piece, piece_position,
+            current_piece_color);
 
     switch(key) {
         case SDLK_d: {
             SDL_Point check = {.x = piece_position.x + 1,
                                .y = piece_position.y};
-            if (!tetris_collisionCheck(check, piece)) {
+            if (!tetris_collisionCheck(check)) {
                 piece_position.x++;
             }
             break;
@@ -357,7 +362,7 @@ update_main(uint64_t frame, SDL_KeyCode key)
             SDL_Point check = {.x = piece_position.x - 1,
                                .y = piece_position.y};
 
-            if (!tetris_collisionCheck(check, piece)) {
+            if (!tetris_collisionCheck(check)) {
                 piece_position.x--;
             }
             break;
@@ -375,7 +380,7 @@ update_main(uint64_t frame, SDL_KeyCode key)
         SDL_Point check = {.x = piece_position.x,
                            .y = piece_position.y + 1};
 
-        if (!tetris_collisionCheck(check, piece))  {
+        if (!tetris_collisionCheck(check))  {
             piece_position.y++;
         } else{
             // TODO:
@@ -383,13 +388,13 @@ update_main(uint64_t frame, SDL_KeyCode key)
             // the screen space available
             if (piece_position.y < 0) {
                 Size size;
-                tetris_getPeiceSize(piece, &size);
-                if (size.h > 1) piece_position.y--;
-                tetris_addToPlaced(piece, piece_position, color);
+                tetris_getPeiceSize(&size);
+                /* if (size.h > 1) piece_position.y--; */
+                tetris_addToPlaced(piece_position);
                 update = update_loose;
             } else {
-                tetris_addToPlaced(piece, piece_position, color);
-                tetris_pickPeice(&piece, &color);
+                tetris_addToPlaced(piece_position);
+                tetris_pickPeice();
                 piece_position.y = -1;
             }
         } 
