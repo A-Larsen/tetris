@@ -406,6 +406,10 @@ update_main(uint64_t frame, SDL_KeyCode key)
             fall_speed = 1;
             break;
         }
+        case SDLK_r: {
+            tetris_rotatePiece(FLIP_LEFT);
+            break;
+        }
         default: {
             fall_speed = 30;
         }
