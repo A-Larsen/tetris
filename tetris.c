@@ -48,8 +48,7 @@ static Update_callback update = update_main;
 
 // bounds checking
 void tetris_addToArena(uint8_t i) {
-    if ( i < ARENA_SIZE  && i >= 0)
-        placed[i] = 1;
+    if (i < ARENA_SIZE && i >= 0) placed[i] = 1;
 }
 
 
@@ -191,12 +190,9 @@ tetris_addToPlaced(uint8_t piece, SDL_Point position, uint8_t color)
         for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
             uint8_t piece_i = y * PIECE_WIDTH + x;
             uint8_t placed_i = y * ARENA_WIDTH + x;
-            if (tetris_tetrominos[piece][piece_i]) {
-                /* placed[pos + placed_i] = 1; */
+            if (tetris_tetrominos[piece][piece_i])
                 tetris_addToArena(pos + placed_i);
-            }
         }
-        
     }
 
     uint8_t i = placed_pieces_count++;
@@ -305,7 +301,7 @@ tetris_drawLooseText()
     };
     int padding = 8;
     SDL_Rect text_background = {
-        .x  = rect.x - padding,
+        .x = rect.x - padding,
         .y = rect.y - padding,
         .w = rect.w + padding * 2,
         .h = rect.h + padding * 2
