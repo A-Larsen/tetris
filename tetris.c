@@ -146,8 +146,6 @@ tetris_drawTetromino(SDL_Renderer *renderer, uint8_t piece, SDL_Point position,
     for (int i = 0; i < TETROMINOS_DATA_SIZE; ++i) {
         if (!tetris_tetrominos[piece][i]) continue;
         int x, y; tetris_getXY(i, &x, &y);
-        /* int x = i % PIECE_WIDTH; */
-        /* int y = floor((float)i / PIECE_WIDTH); */
 
         SDL_Rect rect = {
             .x = (x + position.x) * PIECE_SIZE_PX, .y = (y + position.y) *
@@ -217,27 +215,15 @@ tetris_collisionCheck(SDL_Point position, uint8_t piece)
         return true;
     }
 
-    /* for (uint8_t i = 0; i < PIECE_WIDTH; ++i) { */
-    /*     SDL_Point offset = {.x = i + position.x, .y = position.y}; */
-    /*     uint8_t top = tetris_getPlacedPosition(offset); */
-    /*     uint8_t bottom = top + ARENA_WIDTH; */
-    /*     if ((tetris_tetrominos[piece][i] && placed[top]) || */
-    /*        (tetris_tetrominos[piece][i + PIECE_WIDTH] && placed[bottom])) { */
-    /*         return true; */
-    /*     } */
-    /* } */
     for (uint8_t y = 0; y < PIECE_HEIGHT; ++y) {
         for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
-            /* SDL_Point offset = {.x = x + position.x, */
-            /*                     .y = position.y}; */
             uint8_t piece_i = y * PIECE_WIDTH + x;
             uint8_t placed_i = placed_pos + (y * ARENA_WIDTH + x);
-            if (tetris_tetrominos[piece][piece_i] && placed[placed_i]) {
+            if (tetris_tetrominos[piece][piece_i] && placed[placed_i]) 
                 return true;
-            }
-
         }
     }
+
     return false;
 }
 
