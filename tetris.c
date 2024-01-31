@@ -20,7 +20,7 @@
 enum {PIECE_I, PIECE_J, PIECE_L, PIECE_O, PIECE_S, PIECE_T, PIECE_Z, 
       PIECE_COUNT};
 enum {COLOR_RED, COLOR_GREEN, COLOR_BLUE, COLOR_ORANGE, COLOR_SIZE};
-enum { FLIP_NORMAL, FLIP_LEFT, FLIP_RIGHT, FLIP_UPSIDEDOWN};
+/* enum { FLIP_NORMAL, FLIP_LEFT, FLIP_RIGHT, FLIP_UPSIDEDOWN}; */
 
 typedef struct _Size {
     int w;
@@ -49,6 +49,7 @@ typedef void (*Update_callback)(uint64_t frame, SDL_KeyCode key);
 static uint8_t current_piece[PIECE_SIZE];
 static uint8_t current_piece_color = COLOR_RED;
 static Update_callback update = update_main;
+static uint8_t rotation_amount = 3;
 
 static const SDL_Color colors[] = {
     [COLOR_RED] = {.r = 217, .g = 100, .b = 89, .a = 255},
@@ -160,20 +161,18 @@ void tetris_getXY(uint8_t i, int *x, int *y) {
 }
 
 void
-tetris_rotatePiece(uint8_t flip)
+tetris_rotatePiece()
 {
     uint8_t temp_piece[PIECE_SIZE];
     memset(temp_piece, 0, sizeof(uint8_t) * PIECE_SIZE);
     memcpy(&temp_piece, &current_piece, sizeof(uint8_t) * PIECE_SIZE);
 
-    for (uint8_t i = 0; i < TETROMINOS_DATA_SIZE; ++i) {
-        int x, y; tetris_getXY(i, &x, &y);
+    for (uint8_t i = 0; i < ++rotation_amount; ++i) {
+        for (uint8_t j = 0; j < TETROMINOS_DATA_SIZE; ++j) {
+            int x, y; tetris_getXY(j, &x, &y);
 
-        switch(flip) {
-            case FLIP_LEFT: {
-                uint8_t j = x * PIECE_WIDTH + y;
-                temp_piece[i] = current_piece[j];
-            }
+            uint8_t k = x * PIECE_WIDTH + y;
+            temp_piece[j] = current_piece[k];
         }
     }
 
@@ -281,7 +280,6 @@ tetris_init()
     srand(time(NULL));
     memset(&placed, 0, sizeof(uint8_t) * ARENA_SIZE);
     tetris_pickPeice();
-    tetris_rotatePiece(FLIP_LEFT);
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "could not initialize SDL2\n%s", SDL_GetError());
@@ -406,7 +404,7 @@ update_main(uint64_t frame, SDL_KeyCode key)
             break;
         }
         case SDLK_r: {
-            tetris_rotatePiece(FLIP_LEFT);
+            tetris_rotatePiece();
             break;
         }
         default: {
