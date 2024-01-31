@@ -4,6 +4,8 @@
 #include <SDL2/SDL_ttf.h>
 #include <math.h>
 #include <time.h>
+#include <X11/Xlib.h>
+#include <X11/XKBlib.h>
 
 #define SCREEN_WIDTH_PX 400U
 #define SCREEN_HEIGHT_PX 800U
@@ -49,6 +51,8 @@ typedef void (*Update_callback)(uint64_t frame, SDL_KeyCode key);
 static uint8_t current_piece[PIECE_SIZE];
 static uint8_t current_piece_color = COLOR_RED;
 static Update_callback update = update_main;
+static int old_repeat_delay;
+static int old_repeat_interval;
 
 static const SDL_Color colors[] = {
     [COLOR_RED] = {.r = 217, .g = 100, .b = 89, .a = 255},
@@ -95,6 +99,21 @@ const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
                  0,1,1,0,
                  0,0,0,0},
 };
+
+void
+set_kbrate(int delay, int interval)
+{
+    Display *dpy = XOpenDisplay(":0");
+    XkbDescPtr xkb = XkbAllocKeyboard();
+    if (!xkb) return;
+    XkbGetControls(dpy, XkbRepeatKeysMask, xkb);
+    old_repeat_delay = xkb->ctrls->repeat_delay;
+    old_repeat_interval = xkb->ctrls->repeat_interval;
+    xkb->ctrls->repeat_delay = delay;
+    xkb->ctrls->repeat_interval = interval;
+    XkbSetControls(dpy, XkbRepeatKeysMask, xkb);
+    XkbFreeKeyboard(xkb, 0, True);
+}
 
 void
 tetris_addToArena(uint8_t i)
@@ -278,6 +297,7 @@ tetris_pickPeice()
 void
 tetris_init()
 {
+    set_kbrate(600, 25);
     srand(time(NULL));
     memset(&placed, 0, sizeof(uint8_t) * ARENA_SIZE);
     tetris_pickPeice();
@@ -483,6 +503,7 @@ tetris_update()
 void
 tetris_quit()
 {
+    set_kbrate(old_repeat_delay, old_repeat_interval);
     TTF_CloseFont(font);
     SDL_DestroyTexture(texture_lost_text);
     SDL_DestroyWindow(window);
