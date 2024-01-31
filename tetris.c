@@ -311,7 +311,6 @@ tetris_drawLooseText()
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderDrawRect(renderer, &text_background);
     SDL_RenderCopy(renderer, texture_lost_text, NULL, &rect);
-
 }
 
 void
@@ -379,7 +378,10 @@ update_main(uint64_t frame, SDL_KeyCode key)
         if (!tetris_collisionCheck(check, piece))  {
             piece_position.y++;
         } else{
-            if (piece_position.y < 1) {
+            // TODO:
+            // fix the case when the pieces height is greater than
+            // the screen space available
+            if (piece_position.y < 0) {
                 tetris_addToPlaced(piece, piece_position, color);
                 update = update_loose;
             } else {
