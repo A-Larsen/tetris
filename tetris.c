@@ -42,7 +42,6 @@ static uint8_t placed_pieces_count = 0;
 static PlacedPeice *placed_pieces = NULL;
 static TTF_Font *font = NULL;
 static SDL_Texture *texture_lost_text = NULL;
-static uint8_t flip = FLIP_NORMAL;
 static const char * loose_text = "You Lost";
 typedef void (*Update_callback)(uint64_t frame, SDL_KeyCode key);
 static uint8_t current_piece[PIECE_SIZE];
@@ -95,9 +94,10 @@ const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
                  0,0,0,0},
 };
 
-// bounds checking
 void
-tetris_addToArena(uint8_t i) {
+tetris_addToArena(uint8_t i)
+{
+    // bounds checking
     if (i < ARENA_SIZE && i >= 0) placed[i] = 1;
 }
 
@@ -119,7 +119,7 @@ void
 tetris_getPeiceSize(Size *size)
 {
     size->w = 0;
-    size->h = 1;
+    size->h = 0;
 
     for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
         for (uint8_t y = 0; y < PIECE_HEIGHT; ++y) {
@@ -144,7 +144,32 @@ tetris_getPeiceSize(Size *size)
 
 void tetris_getXY(uint8_t i, int *x, int *y) {
     *x = i % PIECE_WIDTH;
-    *y = floor((float)i / PIECE_WIDTH);
+    *y = floor((float)i / PIECE_HEIGHT);
+}
+
+void
+tetris_rotatePiece(uint8_t flip)
+{
+    uint8_t temp_piece[PIECE_SIZE];
+    memset(temp_piece, 0, sizeof(uint8_t) * PIECE_SIZE);
+    memcpy(&temp_piece, &current_piece, sizeof(uint8_t) * PIECE_SIZE);
+
+    for (uint8_t i = 0; i < TETROMINOS_DATA_SIZE; ++i) {
+        int x, y; tetris_getXY(i, &x, &y);
+
+        switch(flip) {
+            case FLIP_LEFT: {
+                /* uint8_t temp = x; */
+                /* x = y; */
+                /* y = temp; */
+                uint8_t j = x * PIECE_WIDTH + y;
+                temp_piece[i] = current_piece[j];
+
+            }
+        }
+    }
+
+    memcpy(&current_piece, &temp_piece, sizeof(uint8_t) * PIECE_SIZE);
 }
 
 void
@@ -248,6 +273,7 @@ tetris_init()
     srand(time(NULL));
     memset(&placed, 0, sizeof(uint8_t) * ARENA_SIZE);
     tetris_pickPeice();
+    tetris_rotatePiece(FLIP_LEFT);
 
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "could not initialize SDL2\n%s", SDL_GetError());
