@@ -6,3 +6,5 @@
         height). Rotation would be much simpler.
 
 - [ ] Fix how last piece gets drawn before you loose
+
+- [ ] need to make sure you cannot rotate out of bounds, or into other pieces

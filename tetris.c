@@ -173,7 +173,6 @@ tetris_rotatePiece(uint8_t flip)
             case FLIP_LEFT: {
                 uint8_t j = x * PIECE_WIDTH + y;
                 temp_piece[i] = current_piece[j];
-
             }
         }
     }
