@@ -197,11 +197,16 @@ tetris_addToPlaced(uint8_t piece, SDL_Point position, uint8_t color)
     /*     } */
         
     /* } */
-    for (uint8_t piece_i = 0; piece_i < TETROMINOS_DATA_SIZE; ++piece_i) {
-        int x, y; tetris_getXY(piece_i, &x, &y);
-        SDL_Point offset = {.x = (piece_i % PIECE_WIDTH) + position.x,
-                            .y = position.y + (ARENA_WIDTH * y)};
-        uint8_t placed_i = tetris_getPlacedPosition(offset);
+
+    for (uint8_t y = 0; y < PIECE_HEIGHT; ++y) {
+        for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
+            uint8_t piece_i = y * PIECE_WIDTH + x;
+            uint8_t placed_i = y * ARENA_WIDTH + x;
+            if (tetris_tetrominos[piece][piece_i]) {
+                placed[pos + placed_i] = 1;
+            }
+        }
+        
     }
 
     uint8_t i = placed_pieces_count++;
@@ -211,6 +216,7 @@ tetris_addToPlaced(uint8_t piece, SDL_Point position, uint8_t color)
     memcpy(&placed_pieces[i].color, &color, sizeof(uint8_t));
     memcpy(&placed_pieces[i].piece, &piece, sizeof(uint8_t));
     tetris_printPlaced();
+    printf("\n");
 }
 
 bool
