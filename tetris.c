@@ -8,8 +8,8 @@
 #define SCREEN_WIDTH_PX 400U
 #define SCREEN_HEIGHT_PX 800U
 #define ARENA_WIDTH 8U
-#define ARENA_HEIGHT 16U
-#define ARENA_SIZE 128U
+#define ARENA_HEIGHT 18U
+#define ARENA_SIZE 144U
 #define PIECE_WIDTH 4U
 #define PIECE_HEIGHT 4U
 #define PIECE_SIZE 16U
@@ -41,7 +41,7 @@ typedef struct _PlacedPeice {
 
 static void update_main(uint64_t frame, SDL_KeyCode key, bool keydown);
 
-static uint8_t placed[ARENA_SIZE]; // 16 x 8
+static uint8_t placed[ARENA_SIZE]; // 8 x 18
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
 static uint8_t placed_pieces_count = 0;
@@ -190,10 +190,13 @@ tetris_drawTetromino(SDL_Renderer *renderer, uint8_t piece[PIECE_SIZE],
     for (int i = 0; i < TETROMINOS_DATA_SIZE; ++i) {
         if (!piece[i]) continue;
         int x, y; tetris_getXY(i, &x, &y);
+        /* y -= 2 ; */
 
         SDL_Rect rect = {
-            .x = (x + position.x) * PIECE_SIZE_PX, .y = (y + position.y) *
+            .x = (x + position.x) * PIECE_SIZE_PX,
+            .y = (y + position.y - 2) *
                  PIECE_SIZE_PX,
+
             .w = PIECE_SIZE_PX, .h = PIECE_SIZE_PX
         };
         tetris_setColor(color);
@@ -363,8 +366,14 @@ tetris_drawLooseText()
 void
 tetris_drawPlaced() {
     for (uint8_t i = 0; i < placed_pieces_count; ++i) {
+        /* placed_pieces[i].position.y += (ARENA_WIDTH * 2); */
+        SDL_Point pos = {
+            .x = placed_pieces[i].position.x,
+            .y = placed_pieces[i].position.y
+
+        };
         tetris_drawTetromino(renderer, placed_pieces[i].piece,
-        placed_pieces[i].position, placed_pieces[i].color);
+        pos, placed_pieces[i].color);
     }
 }
 
