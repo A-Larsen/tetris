@@ -271,18 +271,13 @@ tetris_addToPlaced(SDL_Point position)
 uint8_t
 tetris_collisionCheck(uint8_t *piece, SDL_Point position)
 {
-
     Size size; tetris_getPieceSize(piece, &size);
     uint8_t placed_pos = tetris_getPlacedPosition(position);
 
-    /* if (position.x + size.start_x + size.w > ARENA_WIDTH  || */
-    /*     position.y + size.start_y + size.h > ARENA_HEIGHT || */
-    /*     position.x < -size.start_x) { */
-    /*     return true; */
-    /* } */
     if (position.x < -size.start_x) {
         return COLLIDE_LEFT;
     }
+
     if (position.x + size.start_x + size.w > ARENA_WIDTH) {
         return COLLIDE_RIGHT;
     }
@@ -445,17 +440,24 @@ update_main(uint64_t frame, SDL_KeyCode key)
         case SDLK_r: {
             uint8_t rotated[PIECE_SIZE];
             tetris_rotatePiece(rotated, FLIP_LEFT);
-            if (tetris_collisionCheck(rotated, piece_position) ==
-                COLLIDE_LEFT) {
-                while(true) {
-                    piece_position.x++;
-                    if (!tetris_collisionCheck(rotated, piece_position)) break;
+            uint8_t collide = tetris_collisionCheck(rotated, piece_position);
+            switch(collide) {
+                case COLLIDE_LEFT: {
+                    while(true) {
+                        piece_position.x++;
+                        if (!tetris_collisionCheck(rotated, piece_position))
+                            break;
+                    }
+                }
+                case COLLIDE_RIGHT: {
+                    while(true) {
+                        piece_position.x--;
+                        if (!tetris_collisionCheck(rotated, piece_position))
+                            break;
+                    }
                 }
             }
             memcpy(current_piece, rotated, sizeof(uint8_t) * PIECE_SIZE);
-            /* if (!tetris_collisionCheck(rotated, piece_position)) { */
-            /*     memcpy(current_piece, rotated, sizeof(uint8_t) * PIECE_SIZE); */
-            /* } */
             break;
         }
         default: {
