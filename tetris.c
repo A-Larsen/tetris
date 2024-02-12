@@ -5,8 +5,11 @@
 #include <math.h>
 #include <time.h>
 
-#define SCREEN_WIDTH_PX 400U
+#define ARENA_WIDTH_PX 400U
+#define ARENA_HEIGHT_PX 800U
+#define SCREEN_WIDTH_PX 1200U
 #define SCREEN_HEIGHT_PX 800U
+#define ARENA_PADDING_PX 400U
 #define ARENA_WIDTH 8U
 #define ARENA_HEIGHT 18U
 #define ARENA_SIZE 144U
@@ -194,7 +197,7 @@ tetris_drawTetromino(SDL_Renderer *renderer, uint8_t piece[PIECE_SIZE],
         int x, y; tetris_getXY(i, &x, &y);
 
         SDL_Rect rect = {
-            .x = (x + position.x) * PIECE_SIZE_PX,
+            .x = ((x + position.x) * PIECE_SIZE_PX) + ARENA_PADDING_PX,
             .y = (y + position.y - 2) *
                  PIECE_SIZE_PX,
 
@@ -345,8 +348,8 @@ tetris_drawLooseText()
     TTF_SizeText(font, loose_text, &w, &h);
 
     SDL_Rect rect = {
-        .x = (SCREEN_WIDTH_PX / 2) - (w / 2),
-        .y = (SCREEN_HEIGHT_PX / 2) - (h / 2),
+        .x = (ARENA_WIDTH_PX / 2) - (w / 2),
+        .y = (ARENA_HEIGHT_PX / 2) - (h / 2),
         .w = w,
         .h = h,
     };
@@ -367,7 +370,6 @@ tetris_drawLooseText()
 void
 tetris_drawPlaced() {
     for (uint8_t i = 0; i < placed_pieces_count; ++i) {
-        /* placed_pieces[i].position.y += (ARENA_WIDTH * 2); */
         SDL_Point pos = {
             .x = placed_pieces[i].position.x,
             .y = placed_pieces[i].position.y
