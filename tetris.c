@@ -477,13 +477,9 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
         if (!tetris_collisionCheck(current_piece, check))  {
             piece_position.y++;
         } else{
-            // TODO:
-            // fix the case when the pieces height is greater than
-            // the screen space available
             if (piece_position.y <= 0) {
                 Size size;
                 tetris_getPieceSize(current_piece, &size);
-                /* if (size.h > 1) piece_position.y--; */
                 tetris_addToPlaced(piece_position);
                 update = update_loose;
             } else {
@@ -507,7 +503,6 @@ tetris_update()
 
     while (!quit) {
         tetris_setColor(COLOR_GREY);
-        /* set */
         SDL_RenderClear(renderer);
         tetris_setColor(COLOR_BLACK);
 
@@ -533,11 +528,8 @@ tetris_update()
                     }
                     break;
                 }
-                
                 case SDL_KEYUP: keydown = false; break;
-                   
                 case SDL_QUIT: quit = true; break;
-               
             }
         }
         update(frame, key, keydown);
