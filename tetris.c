@@ -17,16 +17,25 @@
 #define PIECE_HEIGHT 4U
 #define PIECE_SIZE 16U
 #define TETROMINOS_DATA_SIZE 16U
-#define PIECE_SIZE_PX 50U
+#define BLOCK_SIZE_PX 50U
 #define TETROMINOS_COUNT 7U
 #define XKBDDELAY_DEFAULT 660
 #define XKBDRATE_DEFAULT (1000/40)
 #define FPS 60.0f
+#define PIECE_COLOR_SIZE 4
 #define MSPD (1.0f / FPS) * 1000.0f
 
-enum {PIECE_I, PIECE_J, PIECE_L, PIECE_O, PIECE_S, PIECE_T, PIECE_Z, 
+enum {PIECE_I, PIECE_J, PIECE_L, PIECE_O, PIECE_S, PIECE_T, PIECE_Z,
       PIECE_COUNT};
-enum {COLOR_RED, COLOR_GREEN, COLOR_BLUE, COLOR_ORANGE, COLOR_SIZE};
+enum {COLOR_RED, COLOR_GREEN, COLOR_BLUE, COLOR_ORANGE, COLOR_GREY,
+      COLOR_BLACK, COLOR_SIZE};
+
+const uint8_t piece_colors[PIECE_COLOR_SIZE] = {
+    COLOR_RED,
+    COLOR_GREEN,
+    COLOR_BLUE,
+    COLOR_ORANGE,
+};
 enum {FLIP_NORMAL, FLIP_LEFT, FLIP_RIGHT, FLIP_UPSIDEDOWN};
 enum {COLLIDE_LEFT = 0b1000, COLLIDE_RIGHT = 0b0100, 
       COLLIDE_TOP = 0b0010, COLLIDE_BOTTOM = 0b0001, COLLIDE_PIECE = 0b1111};
@@ -66,6 +75,8 @@ static const SDL_Color colors[] = {
     [COLOR_GREEN] = {.r = 88, .g = 140, .b = 126, .a = 255},
     [COLOR_BLUE] = {.r = 146, .g = 161, .b = 185, .a = 255},
     [COLOR_ORANGE] = {.r = 242, .g = 174, .b = 114, .a = 255},
+    [COLOR_GREY] = {.r = 128, .g = 128, .b = 128, .a = 128},
+    [COLOR_BLACK] = {.r = 0, .g = 0, .b = 0, .a = 0},
 };
 
 const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
@@ -197,11 +208,9 @@ tetris_drawTetromino(SDL_Renderer *renderer, uint8_t piece[PIECE_SIZE],
         int x, y; tetris_getXY(i, &x, &y);
 
         SDL_Rect rect = {
-            .x = ((x + position.x) * PIECE_SIZE_PX) + ARENA_PADDING_PX,
-            .y = (y + position.y - 2) *
-                 PIECE_SIZE_PX,
-
-            .w = PIECE_SIZE_PX, .h = PIECE_SIZE_PX
+            .x = ((x + position.x) * BLOCK_SIZE_PX) + ARENA_PADDING_PX,
+            .y = (y + position.y - 2) * BLOCK_SIZE_PX,
+            .w = BLOCK_SIZE_PX, .h = BLOCK_SIZE_PX
         };
         tetris_setColor(color);
         SDL_RenderFillRect(renderer, &rect);
@@ -287,7 +296,8 @@ tetris_pickPeice()
     uint8_t piece = (float)((float)rand() / (float)RAND_MAX) * PIECE_COUNT;
     memcpy(&current_piece, &tetris_tetrominos[piece], sizeof(uint8_t) *
            PIECE_SIZE);
-    current_piece_color = ((current_piece_color) + 1) % COLOR_SIZE;
+    current_piece_color = piece_colors[((current_piece_color) + 1) % 
+                          PIECE_COLOR_SIZE];
 }
 
 void
@@ -495,8 +505,19 @@ tetris_update()
     bool keydown = false;
 
     while (!quit) {
-        SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
+        tetris_setColor(COLOR_GREY);
+        /* set */
         SDL_RenderClear(renderer);
+        tetris_setColor(COLOR_BLACK);
+
+        SDL_Rect arena_background_rect = {
+            .x = ARENA_PADDING_PX,
+            .y = 0,
+            .w = ARENA_WIDTH_PX,
+            .h = ARENA_HEIGHT_PX
+        };
+
+        SDL_RenderFillRect(renderer, &arena_background_rect);
 
         SDL_Event event;
         uint32_t start = SDL_GetTicks();
