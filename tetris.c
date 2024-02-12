@@ -441,6 +441,7 @@ update_main(uint64_t frame, SDL_KeyCode key)
             uint8_t rotated[PIECE_SIZE];
             tetris_rotatePiece(rotated, FLIP_LEFT);
             uint8_t collide = tetris_collisionCheck(rotated, piece_position);
+            bool canRotate = true;
             switch(collide) {
                 case COLLIDE_LEFT: {
                     while(true) {
@@ -458,8 +459,13 @@ update_main(uint64_t frame, SDL_KeyCode key)
                     }
                     break;
                 }
+                case COLLIDE_PIECE: {
+                    canRotate = false;
+                    break;
+                }
             }
-            memcpy(current_piece, rotated, sizeof(uint8_t) * PIECE_SIZE);
+            if (canRotate)
+                memcpy(current_piece, rotated, sizeof(uint8_t) * PIECE_SIZE);
             break;
         }
         default: {
