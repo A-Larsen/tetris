@@ -24,7 +24,9 @@
 enum {PIECE_I, PIECE_J, PIECE_L, PIECE_O, PIECE_S, PIECE_T, PIECE_Z, 
       PIECE_COUNT};
 enum {COLOR_RED, COLOR_GREEN, COLOR_BLUE, COLOR_ORANGE, COLOR_SIZE};
-enum { FLIP_NORMAL, FLIP_LEFT, FLIP_RIGHT, FLIP_UPSIDEDOWN};
+enum {FLIP_NORMAL, FLIP_LEFT, FLIP_RIGHT, FLIP_UPSIDEDOWN};
+enum {COLLIDE_LEFT = 0b1000, COLLIDE_RIGHT = 0b0100, 
+      COLLIDE_TOP = 0b0010, COLLIDE_BOTTOM = 0b0001, COLLIDE_PIECE = 0b1111};
 
 typedef struct _Size {
     int w;
@@ -147,7 +149,7 @@ tetris_setColor(uint8_t color)
 }
 
 void
-tetris_getPeiceSize(Size *size)
+tetris_getPieceSize(uint8_t *piece, Size *size)
 {
     memset(size, 0, sizeof(Size));
 
@@ -157,7 +159,7 @@ tetris_getPeiceSize(Size *size)
     for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
         for (uint8_t y = 0; y < PIECE_HEIGHT; ++y) {
             uint8_t i = y * PIECE_WIDTH + x;
-            if (current_piece[i]) {
+            if (piece[i]) {
                 if (!foundStartx) {
                     size->start_x = x;
                     foundStartx = true;
@@ -171,7 +173,7 @@ tetris_getPeiceSize(Size *size)
     for (uint8_t y = 0; y < PIECE_HEIGHT; ++y) {
         for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
             uint8_t i = y * PIECE_WIDTH + x;
-            if (current_piece[i]) {
+            if (piece[i]) {
                 if (!foundStarty) {
                     size->start_y = y;
                     foundStarty = true;
@@ -189,11 +191,9 @@ void tetris_getXY(uint8_t i, int *x, int *y) {
 }
 
 void
-tetris_rotatePiece(uint8_t flip)
+tetris_rotatePiece(uint8_t rotated[PIECE_SIZE], uint8_t flip)
 {
-    uint8_t temp_piece[PIECE_SIZE];
-    memset(temp_piece, 0, sizeof(uint8_t) * PIECE_SIZE);
-    memcpy(&temp_piece, &current_piece, sizeof(uint8_t) * PIECE_SIZE);
+    memset(rotated, 0, sizeof(uint8_t) * PIECE_SIZE);
 
     for (uint8_t i = 0; i < TETROMINOS_DATA_SIZE; ++i) {
         int x, y; tetris_getXY(i, &x, &y);
@@ -201,12 +201,10 @@ tetris_rotatePiece(uint8_t flip)
         switch(flip) {
             case FLIP_LEFT: {
                 uint8_t j = x * PIECE_WIDTH + y;
-                temp_piece[i] = current_piece[j];
+                rotated[i] = current_piece[j];
             }
         }
     }
-
-    memcpy(&current_piece, &temp_piece, sizeof(uint8_t) * PIECE_SIZE);
 }
 
 void
@@ -270,29 +268,39 @@ tetris_addToPlaced(SDL_Point position)
     printf("\n");
 }
 
-bool
-tetris_collisionCheck(SDL_Point position)
+uint8_t
+tetris_collisionCheck(uint8_t *piece, SDL_Point position)
 {
 
-    Size size; tetris_getPeiceSize(&size);
+    Size size; tetris_getPieceSize(piece, &size);
     uint8_t placed_pos = tetris_getPlacedPosition(position);
 
-    if (position.x + size.start_x + size.w > ARENA_WIDTH  ||
-        position.y + size.start_y + size.h > ARENA_HEIGHT ||
-        position.x < -size.start_x) {
-        return true;
+    /* if (position.x + size.start_x + size.w > ARENA_WIDTH  || */
+    /*     position.y + size.start_y + size.h > ARENA_HEIGHT || */
+    /*     position.x < -size.start_x) { */
+    /*     return true; */
+    /* } */
+    if (position.x < -size.start_x) {
+        return COLLIDE_LEFT;
+    }
+    if (position.x + size.start_x + size.w > ARENA_WIDTH) {
+        return COLLIDE_RIGHT;
+    }
+
+    if (position.y + size.start_y + size.h > ARENA_HEIGHT) {
+        return COLLIDE_BOTTOM;
     }
 
     for (uint8_t y = 0; y < PIECE_HEIGHT; ++y) {
         for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
             uint8_t piece_i = y * PIECE_WIDTH + x;
             uint8_t placed_i = placed_pos + (y * ARENA_WIDTH + x);
-            if (current_piece[piece_i] && placed[placed_i]) 
-                return true;
+            if (piece[piece_i] && placed[placed_i]) 
+                return COLLIDE_PIECE;
         }
     }
 
-    return false;
+    return 0;
 }
 
 void
@@ -405,7 +413,7 @@ update_main(uint64_t frame, SDL_KeyCode key)
 
     if (piece_position.y == -1) {
         Size size;
-        tetris_getPeiceSize(&size);
+        tetris_getPieceSize(current_piece, &size);
         piece_position.x = (ARENA_WIDTH / 2) - (size.w / 2);
     }
 
@@ -416,7 +424,7 @@ update_main(uint64_t frame, SDL_KeyCode key)
         case SDLK_d: {
             SDL_Point check = {.x = piece_position.x + 1,
                                .y = piece_position.y};
-            if (!tetris_collisionCheck(check)) {
+            if (!tetris_collisionCheck(current_piece, check)) {
                 piece_position.x++;
             }
             break;
@@ -425,7 +433,7 @@ update_main(uint64_t frame, SDL_KeyCode key)
             SDL_Point check = {.x = piece_position.x - 1,
                                .y = piece_position.y};
 
-            if (!tetris_collisionCheck(check)) {
+            if (!tetris_collisionCheck(current_piece, check)) {
                 piece_position.x--;
             }
             break;
@@ -435,7 +443,19 @@ update_main(uint64_t frame, SDL_KeyCode key)
             break;
         }
         case SDLK_r: {
-            tetris_rotatePiece(FLIP_LEFT);
+            uint8_t rotated[PIECE_SIZE];
+            tetris_rotatePiece(rotated, FLIP_LEFT);
+            if (tetris_collisionCheck(rotated, piece_position) ==
+                COLLIDE_LEFT) {
+                while(true) {
+                    piece_position.x++;
+                    if (!tetris_collisionCheck(rotated, piece_position)) break;
+                }
+            }
+            memcpy(current_piece, rotated, sizeof(uint8_t) * PIECE_SIZE);
+            /* if (!tetris_collisionCheck(rotated, piece_position)) { */
+            /*     memcpy(current_piece, rotated, sizeof(uint8_t) * PIECE_SIZE); */
+            /* } */
             break;
         }
         default: {
@@ -447,7 +467,7 @@ update_main(uint64_t frame, SDL_KeyCode key)
         SDL_Point check = {.x = piece_position.x,
                            .y = piece_position.y + 1};
 
-        if (!tetris_collisionCheck(check))  {
+        if (!tetris_collisionCheck(current_piece, check))  {
             piece_position.y++;
         } else{
             // TODO:
@@ -455,7 +475,7 @@ update_main(uint64_t frame, SDL_KeyCode key)
             // the screen space available
             if (piece_position.y < 0) {
                 Size size;
-                tetris_getPeiceSize(&size);
+                tetris_getPieceSize(current_piece, &size);
                 /* if (size.h > 1) piece_position.y--; */
                 tetris_addToPlaced(piece_position);
                 update = update_loose;
@@ -513,7 +533,7 @@ tetris_update()
 void
 tetris_quit()
 {
-    set_kbrate(old_repeat_delay, old_repeat_interval);
+    /* set_kbrate(old_repeat_delay, old_repeat_interval); */
     TTF_CloseFont(font);
     SDL_DestroyTexture(texture_lost_text);
     SDL_DestroyWindow(window);
