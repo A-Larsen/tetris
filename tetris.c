@@ -184,20 +184,42 @@ tetris_getPieceSize(uint8_t *piece, Size *size)
 
 
 void
-tetris_rotatePiece(uint8_t rotated[PIECE_SIZE], uint8_t flip)
+tetris_rotatePiece(uint8_t *rotated, uint8_t flip)
 {
     memset(rotated, 0, sizeof(uint8_t) * PIECE_SIZE);
 
-    for (uint8_t i = 0; i < TETROMINOS_DATA_SIZE; ++i) {
-        int x, y; tetris_getXY(i, &x, &y);
+    uint8_t i = 0;
 
-        switch(flip) {
-            case FLIP_LEFT: {
-                uint8_t j = x * PIECE_WIDTH + y;
-                rotated[i] = current_piece[j];
-            }
+    // upside down
+    /* for (int y = PIECE_HEIGHT - 1; y >= 0; --y) { */
+    /*     for (int x = 0; x < PIECE_WIDTH; ++x) { */
+    /*         printf("%d, %d\n", x, y); */
+    /*         uint8_t j = y * PIECE_WIDTH + x; */
+    /*         rotated[i] = current_piece[j]; */
+    /*         ++i; */
+    /*     } */
+    /* } */
+
+    for (int y = 0; y < PIECE_HEIGHT; ++y) {
+        for (int x = PIECE_WIDTH - 1; x >= 0; --x) {
+            printf("%d, %d\n", x, y);
+            uint8_t j = y * PIECE_WIDTH + x;
+            rotated[i] = current_piece[j];
+            ++i;
         }
     }
+
+
+    /* for (uint8_t i = 0; i < TETROMINOS_DATA_SIZE; ++i) { */
+    /*     int x, y; tetris_getXY(i, &x, &y); */
+
+    /*     switch(flip) { */
+    /*         case FLIP_LEFT: { */
+    /*             uint8_t j = x * PIECE_WIDTH + y; */
+    /*             rotated[i] = current_piece[j]; */
+    /*         } */
+    /*     } */
+    /* } */
 }
 
 void
