@@ -459,6 +459,7 @@ update_main(uint64_t frame, SDL_KeyCode key)
                     }
                     break;
                 }
+                case COLLIDE_BOTTOM:
                 case COLLIDE_PIECE: {
                     canRotate = false;
                     break;
