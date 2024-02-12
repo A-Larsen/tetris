@@ -37,7 +37,6 @@ const uint8_t piece_colors[PIECE_COLOR_SIZE] = {
     COLOR_BLUE,
     COLOR_ORANGE,
 };
-enum {FLIP_NORMAL, FLIP_LEFT, FLIP_RIGHT, FLIP_UPSIDEDOWN};
 enum {COLLIDE_LEFT = 0b1000, COLLIDE_RIGHT = 0b0100, 
       COLLIDE_TOP = 0b0010, COLLIDE_BOTTOM = 0b0001, COLLIDE_PIECE = 0b1111};
 
@@ -184,42 +183,22 @@ tetris_getPieceSize(uint8_t *piece, Size *size)
 
 
 void
-tetris_rotatePiece(uint8_t *rotated, uint8_t flip)
+tetris_rotatePiece(uint8_t *rotated)
 {
     memset(rotated, 0, sizeof(uint8_t) * PIECE_SIZE);
 
     uint8_t i = 0;
 
-    // upside down
-    /* for (int y = PIECE_HEIGHT - 1; y >= 0; --y) { */
-    /*     for (int x = 0; x < PIECE_WIDTH; ++x) { */
-    /*         printf("%d, %d\n", x, y); */
-    /*         uint8_t j = y * PIECE_WIDTH + x; */
-    /*         rotated[i] = current_piece[j]; */
-    /*         ++i; */
-    /*     } */
-    /* } */
-
+    // 90 degrees
     for (int y = 0; y < PIECE_HEIGHT; ++y) {
         for (int x = PIECE_WIDTH - 1; x >= 0; --x) {
             printf("%d, %d\n", x, y);
-            uint8_t j = y * PIECE_WIDTH + x;
+            /* uint8_t j = y * PIECE_WIDTH + x; */
+            uint8_t j = x * PIECE_WIDTH + y;
             rotated[i] = current_piece[j];
             ++i;
         }
     }
-
-
-    /* for (uint8_t i = 0; i < TETROMINOS_DATA_SIZE; ++i) { */
-    /*     int x, y; tetris_getXY(i, &x, &y); */
-
-    /*     switch(flip) { */
-    /*         case FLIP_LEFT: { */
-    /*             uint8_t j = x * PIECE_WIDTH + y; */
-    /*             rotated[i] = current_piece[j]; */
-    /*         } */
-    /*     } */
-    /* } */
 }
 
 void
@@ -459,7 +438,7 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
         }
         case SDLK_r: {
             uint8_t rotated[PIECE_SIZE];
-            tetris_rotatePiece(rotated, FLIP_LEFT);
+            tetris_rotatePiece(rotated);
             uint8_t collide = tetris_collisionCheck(rotated, piece_position);
             bool canRotate = true;
             switch(collide) {
