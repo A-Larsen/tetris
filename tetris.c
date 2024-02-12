@@ -75,7 +75,7 @@ static const SDL_Color colors[] = {
     [COLOR_GREEN] = {.r = 88, .g = 140, .b = 126, .a = 255},
     [COLOR_BLUE] = {.r = 146, .g = 161, .b = 185, .a = 255},
     [COLOR_ORANGE] = {.r = 242, .g = 174, .b = 114, .a = 255},
-    [COLOR_GREY] = {.r = 128, .g = 128, .b = 128, .a = 128},
+    [COLOR_GREY] = {.r = 89, .g = 89, .b = 89, .a = 89},
     [COLOR_BLACK] = {.r = 0, .g = 0, .b = 0, .a = 0},
 };
 
