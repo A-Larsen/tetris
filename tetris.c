@@ -28,6 +28,7 @@
 
 enum {PIECE_I, PIECE_J, PIECE_L, PIECE_O, PIECE_S, PIECE_T, PIECE_Z,
       PIECE_COUNT};
+/* enum {PIECE_I, PIECE_COUNT}; */
 
 enum {COLOR_RED, COLOR_GREEN, COLOR_BLUE, COLOR_ORANGE, COLOR_GREY,
       COLOR_BLACK, COLOR_SIZE};
@@ -236,10 +237,42 @@ tetris_printPlaced()
 }
 
 void
-tetris_clearRow()
+tetris_clearRow(uint8_t c)
 {
-    for (int i = 0; i < placed_pieces_count; ++i) {
-        
+    uint8_t temp[ARENA_SIZE];
+    memset(temp, 0, sizeof(uint8_t) * ARENA_SIZE);
+    memcpy(temp, placed, sizeof(uint8_t) * ARENA_SIZE);
+
+    for (int y = c; y > 0; --y) {
+        for (uint8_t x = 0; x < ARENA_WIDTH; ++x) {
+            uint8_t i = y * ARENA_WIDTH + x;
+            if (i >= 0) {
+                temp[i] = placed[i - ARENA_WIDTH];
+
+            }
+        }
+    }
+
+    memcpy(placed, temp, sizeof(uint8_t) * ARENA_SIZE);
+}
+
+void
+tetris_checkForRowClearing()
+{
+    uint8_t row_count = 0;
+    for (uint8_t y = 0; y < ARENA_HEIGHT; ++y) {
+
+        for (uint8_t x = 0; x < ARENA_WIDTH; ++x) {
+            if (x == 0) row_count = 0;
+
+            uint8_t i = y * ARENA_WIDTH + x;
+            if (placed[i]) row_count++;
+            if ((x == ARENA_WIDTH - 1) && (row_count == ARENA_WIDTH)) {
+                /* printf("clear me\n"); */
+                tetris_clearRow(y);
+            }
+
+        }
     }
 }
 
@@ -301,7 +334,9 @@ tetris_collisionCheck(uint8_t *piece, SDL_Point position)
 void
 tetris_pickPeice()
 {
+    /* uint8_t piece = PIECE_I; */
     uint8_t piece = (float)((float)rand() / (float)RAND_MAX) * PIECE_COUNT;
+
     memcpy(&current_piece, &tetris_tetrominos[piece], sizeof(uint8_t) *
            PIECE_SIZE);
     current_piece_color = piece_colors[((current_piece_color) + 1) % 
@@ -404,8 +439,6 @@ tetris_drawPlaced() {
         }
         
     }
-    tetris_printPlaced();
-    printf("\n");
 }
 
 static void
@@ -509,6 +542,9 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
     }
 
     tetris_drawPlaced();
+    tetris_checkForRowClearing();
+    /* tetris_printPlaced(); */
+    /* printf("\n"); */
 }
 
 void
