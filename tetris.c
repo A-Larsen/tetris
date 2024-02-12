@@ -21,7 +21,7 @@
 #define TETROMINOS_COUNT 7U
 #define XKBDDELAY_DEFAULT 660
 #define XKBDRATE_DEFAULT (1000/40)
-#define FPS 60.0f
+#define FPS 80.0f
 #define PIECE_COLOR_SIZE 4
 #define MSPD (1.0f / FPS) * 1000.0f
 #define ARENA_PADDING_TOP 2
@@ -236,6 +236,14 @@ tetris_printPlaced()
 }
 
 void
+tetris_clearRow()
+{
+    for (int i = 0; i < placed_pieces_count; ++i) {
+        
+    }
+}
+
+void
 tetris_addToPlaced(SDL_Point position)
 {
 
@@ -256,8 +264,8 @@ tetris_addToPlaced(SDL_Point position)
     memcpy(&placed_pieces[i].color, &current_piece_color, sizeof(uint8_t));
     memcpy(&placed_pieces[i].piece, &current_piece, sizeof(uint8_t) *
                                     PIECE_SIZE);
-    tetris_printPlaced();
-    printf("\n");
+    /* tetris_printPlaced(); */
+    /* printf("\n"); */
 }
 
 uint8_t
@@ -379,15 +387,25 @@ tetris_drawLooseText()
 
 void
 tetris_drawPlaced() {
-    for (uint8_t i = 0; i < placed_pieces_count; ++i) {
-        SDL_Point pos = {
-            .x = placed_pieces[i].position.x,
-            .y = placed_pieces[i].position.y
-
-        };
-        tetris_drawTetromino(renderer, placed_pieces[i].piece,
-        pos, placed_pieces[i].color);
+    for (int x = 0; x < ARENA_WIDTH; ++x) {
+        for (int y = 0; y < ARENA_HEIGHT; ++y) {
+            uint8_t i = y * ARENA_WIDTH + x;
+            if (!placed[i]) continue;
+            SDL_Rect rect = {
+                .x = (x * BLOCK_SIZE_PX) + ARENA_PADDING_PX,
+                .y = (y - ARENA_PADDING_TOP) * BLOCK_SIZE_PX,
+                .w = BLOCK_SIZE_PX, .h = BLOCK_SIZE_PX
+            };
+            tetris_setColor(COLOR_GREY);
+            SDL_RenderFillRect(renderer, &rect);
+            SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+            SDL_RenderDrawRect(renderer, &rect);
+            
+        }
+        
     }
+    tetris_printPlaced();
+    printf("\n");
 }
 
 static void
