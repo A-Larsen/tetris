@@ -24,6 +24,7 @@
 #define FPS 60.0f
 #define PIECE_COLOR_SIZE 4
 #define MSPD (1.0f / FPS) * 1000.0f
+#define ARENA_PADDING_TOP 2
 
 enum {PIECE_I, PIECE_J, PIECE_L, PIECE_O, PIECE_S, PIECE_T, PIECE_Z,
       PIECE_COUNT};
@@ -209,7 +210,7 @@ tetris_drawTetromino(SDL_Renderer *renderer, uint8_t piece[PIECE_SIZE],
 
         SDL_Rect rect = {
             .x = ((x + position.x) * BLOCK_SIZE_PX) + ARENA_PADDING_PX,
-            .y = (y + position.y - 2) * BLOCK_SIZE_PX,
+            .y = (y + position.y - ARENA_PADDING_TOP) * BLOCK_SIZE_PX,
             .w = BLOCK_SIZE_PX, .h = BLOCK_SIZE_PX
         };
         tetris_setColor(color);
