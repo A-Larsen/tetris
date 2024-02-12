@@ -241,13 +241,12 @@ tetris_addToPlaced(SDL_Point position)
 
     uint8_t pos = tetris_getPlacedPosition(position);
 
-    for (uint8_t y = 0; y < PIECE_HEIGHT; ++y) {
-        for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
-            uint8_t piece_i = y * PIECE_WIDTH + x;
-            uint8_t placed_i = y * ARENA_WIDTH + x;
-            if (current_piece[piece_i])
-                tetris_addToArena(pos + placed_i);
-        }
+    for (uint8_t i = 0; i < TETROMINOS_DATA_SIZE; ++i) {
+        int x, y; tetris_getXY(i, &x, &y);
+        uint8_t piece_i = y * PIECE_WIDTH + x;
+        uint8_t placed_i = y * ARENA_WIDTH + x;
+        if (current_piece[piece_i])
+            tetris_addToArena(pos + placed_i);
     }
 
     uint8_t i = placed_pieces_count++;
