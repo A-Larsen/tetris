@@ -193,8 +193,6 @@ tetris_rotatePiece(uint8_t *rotated)
     // 90 degrees
     for (int y = 0; y < PIECE_HEIGHT; ++y) {
         for (int x = PIECE_WIDTH - 1; x >= 0; --x) {
-            printf("%d, %d\n", x, y);
-            /* uint8_t j = y * PIECE_WIDTH + x; */
             uint8_t j = x * PIECE_WIDTH + y;
             rotated[i] = current_piece[j];
             ++i;
