@@ -358,7 +358,7 @@ tetris_drawLooseText()
     TTF_SizeText(font, loose_text, &w, &h);
 
     SDL_Rect rect = {
-        .x = (ARENA_WIDTH_PX / 2) - (w / 2),
+        .x = ((ARENA_WIDTH_PX / 2) - (w / 2)) + ARENA_PADDING_PX,
         .y = (ARENA_HEIGHT_PX / 2) - (h / 2),
         .w = w,
         .h = h,
