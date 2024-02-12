@@ -4,8 +4,6 @@
 #include <SDL2/SDL_ttf.h>
 #include <math.h>
 #include <time.h>
-#include <X11/Xlib.h>
-#include <X11/XKBlib.h>
 
 #define SCREEN_WIDTH_PX 400U
 #define SCREEN_HEIGHT_PX 800U
@@ -41,7 +39,7 @@ typedef struct _PlacedPeice {
     SDL_Point position;
 } PlacedPeice;
 
-static void update_main(uint64_t frame, SDL_KeyCode key);
+static void update_main(uint64_t frame, SDL_KeyCode key, bool keydown);
 
 static uint8_t placed[ARENA_SIZE]; // 16 x 8
 static SDL_Window *window = NULL;
@@ -51,7 +49,7 @@ static PlacedPeice *placed_pieces = NULL;
 static TTF_Font *font = NULL;
 static SDL_Texture *texture_lost_text = NULL;
 static const char * loose_text = "You Lost";
-typedef void (*Update_callback)(uint64_t frame, SDL_KeyCode key);
+typedef void (*Update_callback)(uint64_t frame, SDL_KeyCode key, bool keydown);
 static uint8_t current_piece[PIECE_SIZE];
 static uint8_t current_piece_color = COLOR_RED;
 static Update_callback update = update_main;
@@ -105,29 +103,6 @@ const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
 };
 
 void
-set_kbrate(int delay, int rate)
-{
-    Display *dpy = XOpenDisplay(NULL);
-    if (dpy == NULL) {
-        fprintf(stderr, 
-               "unable to connect to dispaly: %s\n", XDisplayName(NULL));
-    }
-    XkbDescPtr xkb = XkbAllocKeyboard();
-    if (!xkb) {
-        fprintf(stderr, 
-               "unable to allocate x11 keyboard\n");
-    };
-    XkbGetControls(dpy, XkbRepeatKeysMask, xkb);
-    old_repeat_delay = xkb->ctrls->repeat_delay;
-    old_repeat_interval = xkb->ctrls->repeat_interval;
-    xkb->ctrls->repeat_delay = delay;
-    xkb->ctrls->repeat_interval = 1000 / rate;
-    XkbSetControls(dpy, XkbRepeatKeysMask, xkb);
-    XkbFreeKeyboard(xkb, 0, True);
-    XCloseDisplay(dpy);
-}
-
-void
 tetris_addToArena(uint8_t i)
 {
     // bounds checking
@@ -146,6 +121,11 @@ tetris_setColor(uint8_t color)
 {
     SDL_SetRenderDrawColor(renderer, colors[color].r, colors[color].g,
                            colors[color].b, colors[color].a);
+}
+
+void tetris_getXY(uint8_t i, int *x, int *y) {
+    *x = i % PIECE_WIDTH;
+    *y = floor((float)i / PIECE_HEIGHT);
 }
 
 void
@@ -185,10 +165,6 @@ tetris_getPieceSize(uint8_t *piece, Size *size)
     }
 }
 
-void tetris_getXY(uint8_t i, int *x, int *y) {
-    *x = i % PIECE_WIDTH;
-    *y = floor((float)i / PIECE_HEIGHT);
-}
 
 void
 tetris_rotatePiece(uint8_t rotated[PIECE_SIZE], uint8_t flip)
@@ -310,7 +286,6 @@ tetris_pickPeice()
 void
 tetris_init()
 {
-    set_kbrate(180, 60);
     srand(time(NULL));
     memset(&placed, 0, sizeof(uint8_t) * ARENA_SIZE);
     tetris_pickPeice();
@@ -394,17 +369,17 @@ tetris_drawPlaced() {
 }
 
 static void
-update_loose(uint64_t frame, SDL_KeyCode key)
+update_loose(uint64_t frame, SDL_KeyCode key, bool keydown)
 {
     tetris_drawPlaced();
     tetris_drawLooseText();
 }
 
 static void
-update_main(uint64_t frame, SDL_KeyCode key)
+update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
 {
     static SDL_Point piece_position = {.x = 0, .y = -1};
-    static uint8_t fall_speed = 50;
+    static uint8_t fall_speed = 30;
 
     if (piece_position.y == -1) {
         Size size;
@@ -414,6 +389,7 @@ update_main(uint64_t frame, SDL_KeyCode key)
 
     tetris_drawTetromino(renderer, current_piece, piece_position,
             current_piece_color);
+    if (!keydown) fall_speed = 30;
 
     switch(key) {
         case SDLK_d: {
@@ -469,9 +445,6 @@ update_main(uint64_t frame, SDL_KeyCode key)
                 memcpy(current_piece, rotated, sizeof(uint8_t) * PIECE_SIZE);
             break;
         }
-        default: {
-            fall_speed = 30;
-        }
     }
 
     if (frame % fall_speed == 0) {
@@ -484,13 +457,14 @@ update_main(uint64_t frame, SDL_KeyCode key)
             // TODO:
             // fix the case when the pieces height is greater than
             // the screen space available
-            if (piece_position.y < 0) {
+            if (piece_position.y <= 0) {
                 Size size;
                 tetris_getPieceSize(current_piece, &size);
                 /* if (size.h > 1) piece_position.y--; */
                 tetris_addToPlaced(piece_position);
                 update = update_loose;
             } else {
+                fall_speed = 30;
                 tetris_addToPlaced(piece_position);
                 tetris_pickPeice();
                 piece_position.y = -1;
@@ -506,6 +480,8 @@ tetris_update()
 {
     uint64_t frame = 0;
     bool quit = false;
+    bool keydown = false;
+
     while (!quit) {
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 0);
         SDL_RenderClear(renderer);
@@ -516,17 +492,22 @@ tetris_update()
 
         while(SDL_PollEvent(&event)) {
             switch(event.type) {
-                case SDL_KEYDOWN:
-                   key =  event.key.keysym.sym;
-                   break;
-                case SDL_QUIT: {
-                    quit = true;
+                case SDL_KEYDOWN: {
+                    if (event.key.repeat == 0) {
+                      key = event.key.keysym.sym;
+                      keydown = true;
+                    }
                     break;
                 }
+                
+                case SDL_KEYUP: keydown = false; break;
+                   
+                case SDL_QUIT: quit = true; break;
+               
             }
         }
+        update(frame, key, keydown);
 
-        update(frame, key);
 
         uint32_t end = SDL_GetTicks();
         uint32_t elapsed_time = end - start;
@@ -544,7 +525,6 @@ tetris_update()
 void
 tetris_quit()
 {
-    /* set_kbrate(old_repeat_delay, old_repeat_interval); */
     TTF_CloseFont(font);
     SDL_DestroyTexture(texture_lost_text);
     SDL_DestroyWindow(window);
