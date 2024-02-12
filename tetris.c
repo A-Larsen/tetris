@@ -16,8 +16,10 @@
 #define TETROMINOS_DATA_SIZE 16U
 #define PIECE_SIZE_PX 50U
 #define TETROMINOS_COUNT 7U
-# define XKBDDELAY_DEFAULT 660
-# define XKBDRATE_DEFAULT (1000/40)
+#define XKBDDELAY_DEFAULT 660
+#define XKBDRATE_DEFAULT (1000/40)
+#define FPS 60.0f
+#define MSPD (1.0f / FPS) * 1000.0f
 
 enum {PIECE_I, PIECE_J, PIECE_L, PIECE_O, PIECE_S, PIECE_T, PIECE_Z, 
       PIECE_COUNT};
@@ -190,7 +192,6 @@ tetris_drawTetromino(SDL_Renderer *renderer, uint8_t piece[PIECE_SIZE],
     for (int i = 0; i < TETROMINOS_DATA_SIZE; ++i) {
         if (!piece[i]) continue;
         int x, y; tetris_getXY(i, &x, &y);
-        /* y -= 2 ; */
 
         SDL_Rect rect = {
             .x = (x + position.x) * PIECE_SIZE_PX,
@@ -521,8 +522,8 @@ tetris_update()
         uint32_t end = SDL_GetTicks();
         uint32_t elapsed_time = end - start;
 
-        if (elapsed_time < 16) {
-            elapsed_time = 16 - elapsed_time;
+        if (elapsed_time < MSPD) {
+            elapsed_time = MSPD - elapsed_time;
             SDL_Delay(elapsed_time);
         } 
 
