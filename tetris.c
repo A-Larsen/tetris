@@ -448,6 +448,7 @@ update_main(uint64_t frame, SDL_KeyCode key)
                         if (!tetris_collisionCheck(rotated, piece_position))
                             break;
                     }
+                    break;
                 }
                 case COLLIDE_RIGHT: {
                     while(true) {
@@ -455,6 +456,7 @@ update_main(uint64_t frame, SDL_KeyCode key)
                         if (!tetris_collisionCheck(rotated, piece_position))
                             break;
                     }
+                    break;
                 }
             }
             memcpy(current_piece, rotated, sizeof(uint8_t) * PIECE_SIZE);
