@@ -64,7 +64,7 @@ static SDL_Renderer *renderer = NULL;
 static uint8_t placed_pieces_count = 0;
 static PlacedPeice *placed_pieces = NULL;
 static TTF_Font *loose_font = NULL;
-static TTF_Font *score_font = NULL;
+static TTF_Font *ui_font = NULL;
 static SDL_Texture *texture_lost_text = NULL;
 static const char * loose_text = "You Lost";
 typedef void (*Update_callback)(uint64_t frame, SDL_KeyCode key, bool keydown);
@@ -394,7 +394,8 @@ tetris_collisionCheck(uint8_t *piece, SDL_Point position)
 void
 tetris_pickPeice()
 {
-    uint8_t piece = (float)((float)rand() / (float)RAND_MAX) * PIECE_COUNT;
+    uint8_t piece = PIECE_I;
+    /* uint8_t piece = (float)((float)rand() / (float)RAND_MAX) * PIECE_COUNT; */
 
     memcpy(&current_piece, &tetris_tetrominos[piece], sizeof(uint8_t) *
            PIECE_SIZE);
@@ -424,9 +425,9 @@ tetris_init()
         fprintf(stderr, "could not open font %s\n", SDL_GetError());
     }
 
-    score_font = TTF_OpenFont("./fonts/NotoSansMono-Regular.ttf", 30);
+    ui_font = TTF_OpenFont("./fonts/NotoSansMono-Regular.ttf", 30);
 
-    if (score_font == NULL) {
+    if (ui_font == NULL) {
         fprintf(stderr, "could not open font %s\n", SDL_GetError());
     }
 
@@ -557,7 +558,9 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
         if (!tetris_collisionCheck(current_piece, check))  {
             piece_position.y++;
         } else{
-            if (piece_position.y < 0) {
+            Size size;
+            tetris_getPieceSize(current_piece, &size);
+            if (piece_position.y - size.h < 0) {
                 Size size;
                 tetris_getPieceSize(current_piece, &size);
                 tetris_addToPlaced(piece_position);
@@ -576,7 +579,7 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
     char score_string[255];
     sprintf(score_string, "score %d", score);
     SDL_Point point = {.x = 200, .y = 50};
-    draw_text(score_font, score_string, point);
+    draw_text(ui_font, score_string, point);
 }
 
 void
@@ -639,7 +642,7 @@ void
 tetris_quit()
 {
     TTF_CloseFont(loose_font);
-    TTF_CloseFont(score_font);
+    TTF_CloseFont(ui_font);
     SDL_DestroyTexture(texture_lost_text);
     SDL_DestroyWindow(window);
     SDL_Quit();
