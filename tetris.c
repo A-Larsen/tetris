@@ -27,13 +27,6 @@ enum {PIECE_I, PIECE_J, PIECE_L, PIECE_O, PIECE_S, PIECE_T, PIECE_Z,
 
 enum {COLOR_RED, COLOR_GREEN, COLOR_BLUE, COLOR_ORANGE, COLOR_GREY,
       COLOR_BLACK, COLOR_SIZE};
-
-const uint8_t piece_colors[PIECE_COLOR_SIZE] = {
-    COLOR_RED,
-    COLOR_GREEN,
-    COLOR_BLUE,
-    COLOR_ORANGE,
-};
 enum {COLLIDE_LEFT = 0b1000, COLLIDE_RIGHT = 0b0100, 
       COLLIDE_TOP = 0b0010, COLLIDE_BOTTOM = 0b0001, COLLIDE_PIECE = 0b1111};
 
@@ -44,12 +37,17 @@ typedef struct _Size {
     uint8_t start_y;
 } Size;
 
+typedef struct _Game {
+    uint8_t level;
+    uint8_t score;
+} Game;
+
 static uint8_t placed[ARENA_SIZE]; // 8 x 18
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
 static TTF_Font *loose_font = NULL;
 static TTF_Font *ui_font = NULL;
-typedef uint8_t (*Update_callback)(uint64_t frame, SDL_KeyCode key,
+typedef uint8_t (*Update_callback)(Game *game, uint64_t frame, SDL_KeyCode key,
                                    bool keydown);
 
 static const SDL_Color colors[] = {
@@ -61,7 +59,7 @@ static const SDL_Color colors[] = {
     [COLOR_BLACK] = {.r = 0, .g = 0, .b = 0, .a = 0},
 };
 
-const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
+static const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
                                [PIECE_SIZE] = {
     // each peice has 4 ones
     [PIECE_I] = {0,0,0,0,
@@ -362,6 +360,12 @@ tetris_collisionCheck(uint8_t *piece, SDL_Point position)
 void
 tetris_pickPeice(uint8_t *piece, uint8_t *color)
 {
+    const uint8_t piece_colors[PIECE_COLOR_SIZE] = {
+        COLOR_RED,
+        COLOR_GREEN,
+        COLOR_BLUE,
+        COLOR_ORANGE,
+    };
     uint8_t id = (float)((float)rand() / (float)RAND_MAX) * PIECE_COUNT;
 
     memcpy(piece, &tetris_tetrominos[id], sizeof(uint8_t) *
@@ -435,7 +439,7 @@ tetris_drawPlaced() {
 
 // id of 1
 static uint8_t
-update_loose(uint64_t frame, SDL_KeyCode key, bool keydown)
+update_loose(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
 {
     SDL_Point point = {.x = ARENA_WIDTH_PX / 2 + ARENA_PADDING_PX,
                        .y = ARENA_HEIGHT_PX / 2};
@@ -446,15 +450,13 @@ update_loose(uint64_t frame, SDL_KeyCode key, bool keydown)
 
 // id of 0
 static uint8_t
-update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
+update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
 {
     static SDL_Point piece_position = {.x = 0, .y = -1};
     static uint8_t fall_speed = 30;
     static uint8_t current_piece[PIECE_SIZE];
     static uint8_t color = COLOR_RED;
     static bool init = true;
-    static uint8_t level = 0;
-    static uint8_t score = 0;
 
     if (init) {
         srand(time(NULL));
@@ -553,9 +555,9 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
     }
 
     uint8_t lines = tetris_checkForRowClearing();
-    score += tetris_findPoints(level, lines);
+    game->score += tetris_findPoints(game->level, lines);
     char score_string[255];
-    sprintf(score_string, "score %d", score);
+    sprintf(score_string, "score %d", game->score);
     SDL_Point point = {.x = ARENA_PADDING_PX / 2, .y = 50};
     draw_text(ui_font, score_string, point);
     return 0;
@@ -569,6 +571,7 @@ tetris_update(const uint8_t fps)
     bool keydown = false;
     uint8_t update_id = 0;
     Update_callback update = update_main;
+    Game game = {.level = 0, .score = 0};
 
     while (!quit) {
 
@@ -609,7 +612,7 @@ tetris_update(const uint8_t fps)
         }
 
         tetris_drawPlaced();
-        update_id = update(frame, key, keydown);
+        update_id = update(&game, frame, key, keydown);
 
 
         uint32_t end = SDL_GetTicks();
