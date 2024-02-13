@@ -19,13 +19,8 @@
 #define TETROMINOS_DATA_SIZE 16U
 #define BLOCK_SIZE_PX 50U
 #define TETROMINOS_COUNT 7U
-#define XKBDDELAY_DEFAULT 660
-#define XKBDRATE_DEFAULT (1000/40)
-#define FPS 80.0f
 #define PIECE_COLOR_SIZE 4
-#define MSPD (1.0f / FPS) * 1000.0f
 #define ARENA_PADDING_TOP 2
-
 
 enum {PIECE_I, PIECE_J, PIECE_L, PIECE_O, PIECE_S, PIECE_T, PIECE_Z,
       PIECE_COUNT};
@@ -577,12 +572,12 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
     score += tetris_findPoints(lines);
     char score_string[255];
     sprintf(score_string, "score %d", score);
-    SDL_Point point = {.x = 200, .y = 50};
+    SDL_Point point = {.x = ARENA_PADDING_PX / 2, .y = 50};
     draw_text(ui_font, score_string, point);
 }
 
 void
-tetris_update()
+tetris_update(const uint8_t fps)
 {
     uint64_t frame = 0;
     bool quit = false;
@@ -627,8 +622,10 @@ tetris_update()
         uint32_t end = SDL_GetTicks();
         uint32_t elapsed_time = end - start;
 
-        if (elapsed_time < MSPD) {
-            elapsed_time = MSPD - elapsed_time;
+        float mspd = (1.0f / (float)fps) * 1000.0f;
+
+        if (elapsed_time < mspd) {
+            elapsed_time = mspd - elapsed_time;
             SDL_Delay(elapsed_time);
         } 
 
@@ -652,7 +649,7 @@ int
 main(void)
 {
     tetris_init();
-    tetris_update();
+    tetris_update(60);
     tetris_quit();
     return 0;
 }
