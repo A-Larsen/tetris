@@ -178,7 +178,6 @@ tetris_getPieceSize(uint8_t *piece, Size *size)
     }
 }
 
-
 void
 tetris_rotatePiece(uint8_t *piece, uint8_t *rotated)
 {
