@@ -51,7 +51,6 @@ static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
 static TTF_Font *loose_font = NULL;
 static TTF_Font *ui_font = NULL;
-static SDL_Texture *texture_lost_text = NULL;
 typedef uint8_t (*Update_callback)(uint64_t frame, SDL_KeyCode key,
                                    bool keydown);
 static uint8_t current_piece_color = COLOR_RED;
@@ -633,7 +632,6 @@ tetris_quit()
 {
     TTF_CloseFont(loose_font);
     TTF_CloseFont(ui_font);
-    SDL_DestroyTexture(texture_lost_text);
     SDL_DestroyWindow(window);
     SDL_Quit();
 }
