@@ -26,9 +26,9 @@
 #define MSPD (1.0f / FPS) * 1000.0f
 #define ARENA_PADDING_TOP 2
 
+
 enum {PIECE_I, PIECE_J, PIECE_L, PIECE_O, PIECE_S, PIECE_T, PIECE_Z,
       PIECE_COUNT};
-/* enum {PIECE_I, PIECE_COUNT}; */
 
 enum {COLOR_RED, COLOR_GREEN, COLOR_BLUE, COLOR_ORANGE, COLOR_GREY,
       COLOR_BLACK, COLOR_SIZE};
@@ -56,7 +56,8 @@ typedef struct _PlacedPeice {
 } PlacedPeice;
 
 static void update_main(uint64_t frame, SDL_KeyCode key, bool keydown);
-
+static uint8_t level = 0;
+static uint16_t score = 0;
 static uint8_t placed[ARENA_SIZE]; // 8 x 18
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
@@ -119,6 +120,19 @@ const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
                  0,1,1,0,
                  0,0,0,0},
 };
+
+int
+tetris_findPoints(uint8_t lines)
+{
+    switch(lines) {
+        case 1: return 40 * (level + 1);
+        case 2: return 80 * (level + 1);
+        case 3: return 120 * (level + 1);
+        case 4: return 400 * (level + 1);
+    }
+
+    return 0;
+}
 
 void
 tetris_addToArena(uint8_t i)
@@ -444,7 +458,6 @@ tetris_drawPlaced() {
 static void
 update_loose(uint64_t frame, SDL_KeyCode key, bool keydown)
 {
-    tetris_drawPlaced();
     tetris_drawLooseText();
 }
 
@@ -541,7 +554,6 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
         } 
     }
 
-    tetris_drawPlaced();
     tetris_checkForRowClearing();
     /* tetris_printPlaced(); */
     /* printf("\n"); */
@@ -585,6 +597,8 @@ tetris_update()
                 case SDL_QUIT: quit = true; break;
             }
         }
+
+        tetris_drawPlaced();
         update(frame, key, keydown);
 
 
