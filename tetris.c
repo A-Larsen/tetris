@@ -121,6 +121,22 @@ const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
                  0,0,0,0},
 };
 
+static void 
+draw_text(const char *text, SDL_Rect rect)
+{
+    SDL_Color font_color = {.r = 255, .g = 255, .b =255, .a = 255};
+    SDL_Surface *surface = TTF_RenderText_Solid(font, loose_text, font_color);
+
+    if (surface == NULL) {
+        fprintf(stderr, "Could not create text surface\n%s", SDL_GetError());
+    }
+    SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+    SDL_RenderCopy(renderer, texture, NULL, &rect);
+    SDL_FreeSurface(surface);
+    SDL_DestroyTexture(texture);
+
+}
+
 int
 tetris_findPoints(uint8_t lines)
 {
@@ -397,16 +413,6 @@ tetris_init()
         fprintf(stderr, "could not create renderer\n%s", SDL_GetError());
         exit(1);
     }
-
-    SDL_Color font_color = {.r = 255, .g = 255, .b =255, .a = 255};
-    SDL_Surface *surface = TTF_RenderText_Solid(font, loose_text, font_color);
-
-    if (surface == NULL) {
-        fprintf(stderr, "Could not create text surface\n%s", SDL_GetError());
-    }
-    texture_lost_text = SDL_CreateTextureFromSurface(renderer, surface);
-
-    SDL_FreeSurface(surface);
 }
 
 void
@@ -433,7 +439,7 @@ tetris_drawLooseText()
     SDL_RenderFillRect(renderer, &text_background);
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderDrawRect(renderer, &text_background);
-    SDL_RenderCopy(renderer, texture_lost_text, NULL, &rect);
+    draw_text(loose_text, rect);
 }
 
 void
@@ -561,9 +567,6 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
     if (lines != 0) {
         printf("score: %d\n", score);
     }
-    /* printf() */
-    /* tetris_printPlaced(); */
-    /* printf("\n"); */
 }
 
 void
