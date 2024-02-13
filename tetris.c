@@ -44,8 +44,6 @@ typedef struct _Size {
     uint8_t start_y;
 } Size;
 
-static uint8_t level = 0;
-static uint16_t score = 0;
 static uint8_t placed[ARENA_SIZE]; // 8 x 18
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
@@ -146,7 +144,7 @@ draw_text(TTF_Font *font, const char *text, SDL_Point point)
 }
 
 int
-tetris_findPoints(uint8_t lines)
+tetris_findPoints(uint8_t level, uint8_t lines)
 {
     switch(lines) {
         case 1: return 40 * (level + 1);
@@ -455,6 +453,8 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
     static uint8_t current_piece[PIECE_SIZE];
     static uint8_t color = COLOR_RED;
     static bool init = true;
+    static uint8_t level = 0;
+    static uint8_t score = 0;
 
     if (init) {
         srand(time(NULL));
@@ -553,7 +553,7 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
     }
 
     uint8_t lines = tetris_checkForRowClearing();
-    score += tetris_findPoints(lines);
+    score += tetris_findPoints(level, lines);
     char score_string[255];
     sprintf(score_string, "score %d", score);
     SDL_Point point = {.x = ARENA_PADDING_PX / 2, .y = 50};
