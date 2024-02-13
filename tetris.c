@@ -40,6 +40,7 @@ typedef struct _Size {
 typedef struct _Game {
     uint8_t level;
     uint8_t score;
+    SDL_Renderer *renderer;
 } Game;
 
 typedef uint8_t (*Update_callback)(Game *game, uint64_t frame, SDL_KeyCode key,
@@ -47,12 +48,12 @@ typedef uint8_t (*Update_callback)(Game *game, uint64_t frame, SDL_KeyCode key,
 
 static uint8_t placed[ARENA_SIZE]; // 8 x 18
 static SDL_Window *window = NULL;
-static SDL_Renderer *renderer = NULL;
+/* static SDL_Renderer *renderer = NULL; */
 static TTF_Font *loose_font = NULL;
 static TTF_Font *ui_font = NULL;
 
 static void 
-draw_text(TTF_Font *font, const char *text, SDL_Point point)
+draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Point point)
 {
     int w = 0;
     int h = 0;
@@ -122,7 +123,7 @@ tetris_getPlacedPosition(SDL_Point pos)
 }
 
 void
-tetris_setColor(uint8_t color)
+tetris_setColor(SDL_Renderer *renderer, uint8_t color)
 {
     const SDL_Color colors[] = {
         [COLOR_RED] = {.r = 217, .g = 100, .b = 89, .a = 255},
@@ -209,7 +210,7 @@ tetris_drawTetromino(SDL_Renderer *renderer, uint8_t piece[PIECE_SIZE],
             .y = (y + position.y - ARENA_PADDING_TOP) * BLOCK_SIZE_PX,
             .w = BLOCK_SIZE_PX, .h = BLOCK_SIZE_PX
         };
-        tetris_setColor(color);
+        tetris_setColor(renderer, color);
         SDL_RenderFillRect(renderer, &rect);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
         SDL_RenderDrawRect(renderer, &rect);
@@ -376,7 +377,7 @@ tetris_pickPeice(uint8_t *piece, uint8_t *color)
 }
 
 void
-tetris_init()
+tetris_init(Game *game)
 {
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "could not initialize SDL2\n%s", SDL_GetError());
@@ -409,16 +410,16 @@ tetris_init()
         exit(1);
     }
 
-    renderer = SDL_CreateRenderer(window, 0, SDL_RENDERER_SOFTWARE);
+    game->renderer = SDL_CreateRenderer(window, 0, SDL_RENDERER_SOFTWARE);
 
-    if (renderer == NULL) {
+    if (game->renderer == NULL) {
         fprintf(stderr, "could not create renderer\n%s", SDL_GetError());
         exit(1);
     }
 }
 
 void
-tetris_drawPlaced() {
+tetris_drawPlaced(SDL_Renderer *renderer) {
     for (int x = 0; x < ARENA_WIDTH; ++x) {
         for (int y = 0; y < ARENA_HEIGHT; ++y) {
             uint8_t i = y * ARENA_WIDTH + x;
@@ -428,7 +429,7 @@ tetris_drawPlaced() {
                 .y = (y - ARENA_PADDING_TOP) * BLOCK_SIZE_PX,
                 .w = BLOCK_SIZE_PX, .h = BLOCK_SIZE_PX
             };
-            tetris_setColor(COLOR_GREY);
+            tetris_setColor(renderer, COLOR_GREY);
             SDL_RenderFillRect(renderer, &rect);
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderDrawRect(renderer, &rect);
@@ -445,7 +446,8 @@ update_loose(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
     SDL_Point point = {.x = ARENA_WIDTH_PX / 2 + ARENA_PADDING_PX,
                        .y = ARENA_HEIGHT_PX / 2};
 
-    draw_text(loose_font, "You Loose", point);
+    tetris_drawPlaced(game->renderer);
+    draw_text(game->renderer, loose_font, "You Loose", point);
     return 1;
 }
 
@@ -472,7 +474,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
         piece_position.x = (ARENA_WIDTH / 2) - (size.w / 2);
     }
 
-    tetris_drawTetromino(renderer, current_piece, piece_position,
+    tetris_drawTetromino(game->renderer, current_piece, piece_position,
             color);
     if (!keydown) fall_speed = 30;
 
@@ -560,19 +562,19 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
     char score_string[255];
     sprintf(score_string, "score %d", game->score);
     SDL_Point point = {.x = ARENA_PADDING_PX / 2, .y = 50};
-    draw_text(ui_font, score_string, point);
+    draw_text(game->renderer, ui_font, score_string, point);
+    tetris_drawPlaced(game->renderer);
     return 0;
 }
 
 void
-tetris_update(const uint8_t fps)
+tetris_update(Game *game, const uint8_t fps)
 {
     uint64_t frame = 0;
     bool quit = false;
     bool keydown = false;
     uint8_t update_id = 0;
     Update_callback update = update_main;
-    Game game = {.level = 0, .score = 0};
 
     while (!quit) {
 
@@ -581,9 +583,9 @@ tetris_update(const uint8_t fps)
             case 1: update = update_loose; break;
         }
 
-        tetris_setColor(COLOR_GREY);
-        SDL_RenderClear(renderer);
-        tetris_setColor(COLOR_BLACK);
+        tetris_setColor(game->renderer, COLOR_GREY);
+        SDL_RenderClear(game->renderer);
+        tetris_setColor(game->renderer, COLOR_BLACK);
 
         SDL_Rect arena_background_rect = {
             .x = ARENA_PADDING_PX,
@@ -592,7 +594,7 @@ tetris_update(const uint8_t fps)
             .h = ARENA_HEIGHT_PX
         };
 
-        SDL_RenderFillRect(renderer, &arena_background_rect);
+        SDL_RenderFillRect(game->renderer, &arena_background_rect);
 
         SDL_Event event;
         uint32_t start = SDL_GetTicks();
@@ -612,8 +614,7 @@ tetris_update(const uint8_t fps)
             }
         }
 
-        tetris_drawPlaced();
-        update_id = update(&game, frame, key, keydown);
+        update_id = update(game, frame, key, keydown);
 
 
         uint32_t end = SDL_GetTicks();
@@ -626,7 +627,7 @@ tetris_update(const uint8_t fps)
             SDL_Delay(elapsed_time);
         } 
 
-        SDL_RenderPresent(renderer);
+        SDL_RenderPresent(game->renderer);
         frame++;
     }
 }
@@ -643,8 +644,9 @@ tetris_quit()
 int
 main(void)
 {
-    tetris_init();
-    tetris_update(60);
+    Game game;
+    tetris_init(&game);
+    tetris_update(&game, 60);
     tetris_quit();
     return 0;
 }
