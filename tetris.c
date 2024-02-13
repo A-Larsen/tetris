@@ -41,14 +41,13 @@ typedef struct _Game {
     uint8_t level;
     uint8_t score;
     SDL_Renderer *renderer;
+    SDL_Window *window;
 } Game;
 
 typedef uint8_t (*Update_callback)(Game *game, uint64_t frame, SDL_KeyCode key,
                                    bool keydown);
 
 static uint8_t placed[ARENA_SIZE]; // 8 x 18
-static SDL_Window *window = NULL;
-/* static SDL_Renderer *renderer = NULL; */
 static TTF_Font *loose_font = NULL;
 static TTF_Font *ui_font = NULL;
 
@@ -401,16 +400,17 @@ tetris_init(Game *game)
     }
 
 
-    window = SDL_CreateWindow("tetris", SDL_WINDOWPOS_UNDEFINED, 
+    game->window = SDL_CreateWindow("tetris", SDL_WINDOWPOS_UNDEFINED, 
                      SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH_PX, 
                      SCREEN_HEIGHT_PX, SDL_WINDOW_SHOWN);
 
-    if (window == NULL) {
+    if (game->window == NULL) {
         fprintf(stderr, "could not create window\n%s", SDL_GetError());
         exit(1);
     }
 
-    game->renderer = SDL_CreateRenderer(window, 0, SDL_RENDERER_SOFTWARE);
+    game->renderer = SDL_CreateRenderer(game->window, 0,
+                                        SDL_RENDERER_SOFTWARE);
 
     if (game->renderer == NULL) {
         fprintf(stderr, "could not create renderer\n%s", SDL_GetError());
@@ -633,11 +633,12 @@ tetris_update(Game *game, const uint8_t fps)
 }
 
 void
-tetris_quit()
+tetris_quit(Game *game)
 {
     TTF_CloseFont(loose_font);
     TTF_CloseFont(ui_font);
-    SDL_DestroyWindow(window);
+    SDL_DestroyWindow(game->window);
+    SDL_DestroyRenderer(game->renderer);
     SDL_Quit();
 }
 
@@ -647,6 +648,6 @@ main(void)
     Game game;
     tetris_init(&game);
     tetris_update(&game, 60);
-    tetris_quit();
+    tetris_quit(&game);
     return 0;
 }
