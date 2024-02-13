@@ -42,14 +42,16 @@ typedef struct _Game {
     uint8_t score;
     SDL_Renderer *renderer;
     SDL_Window *window;
+    TTF_Font *loose_font;
+    TTF_Font *ui_font;
 } Game;
 
 typedef uint8_t (*Update_callback)(Game *game, uint64_t frame, SDL_KeyCode key,
                                    bool keydown);
 
 static uint8_t placed[ARENA_SIZE]; // 8 x 18
-static TTF_Font *loose_font = NULL;
-static TTF_Font *ui_font = NULL;
+/* static TTF_Font *loose_font = NULL; */
+/* static TTF_Font *ui_font = NULL; */
 
 static void 
 draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text,
@@ -388,15 +390,15 @@ tetris_init(Game *game)
         fprintf(stderr, "could not initialize TTF\n%s", SDL_GetError());
         exit(1);
     }
-    loose_font = TTF_OpenFont("./fonts/NotoSansMono-Regular.ttf", 50);
+    game->loose_font = TTF_OpenFont("./fonts/NotoSansMono-Regular.ttf", 50);
 
-    if (loose_font == NULL) {
+    if (game->loose_font == NULL) {
         fprintf(stderr, "could not open font %s\n", SDL_GetError());
     }
 
-    ui_font = TTF_OpenFont("./fonts/NotoSansMono-Regular.ttf", 30);
+    game->ui_font = TTF_OpenFont("./fonts/NotoSansMono-Regular.ttf", 30);
 
-    if (ui_font == NULL) {
+    if (game->ui_font == NULL) {
         fprintf(stderr, "could not open font %s\n", SDL_GetError());
     }
 
@@ -448,7 +450,7 @@ update_loose(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
                        .y = ARENA_HEIGHT_PX / 2};
 
     tetris_drawPlaced(game->renderer);
-    draw_text(game->renderer, loose_font, "You Loose", point);
+    draw_text(game->renderer, game->loose_font, "You Loose", point);
     return 1;
 }
 
@@ -563,7 +565,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
     char score_string[255];
     sprintf(score_string, "score %d", game->score);
     SDL_Point point = {.x = ARENA_PADDING_PX / 2, .y = 50};
-    draw_text(game->renderer, ui_font, score_string, point);
+    draw_text(game->renderer, game->ui_font, score_string, point);
     tetris_drawPlaced(game->renderer);
     return 0;
 }
@@ -636,8 +638,8 @@ tetris_update(Game *game, const uint8_t fps)
 void
 tetris_quit(Game *game)
 {
-    TTF_CloseFont(loose_font);
-    TTF_CloseFont(ui_font);
+    TTF_CloseFont(game->loose_font);
+    TTF_CloseFont(game->ui_font);
     SDL_DestroyWindow(game->window);
     SDL_DestroyRenderer(game->renderer);
     SDL_Quit();
