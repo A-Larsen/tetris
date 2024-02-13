@@ -44,12 +44,11 @@ typedef struct _Game {
     SDL_Window *window;
     TTF_Font *loose_font;
     TTF_Font *ui_font;
+    uint8_t placed[ARENA_SIZE]; // 8 x 18 */
 } Game;
 
 typedef uint8_t (*Update_callback)(Game *game, uint64_t frame, SDL_KeyCode key,
                                    bool keydown);
-
-static uint8_t placed[ARENA_SIZE]; // 8 x 18
 
 static void 
 draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text,
@@ -109,7 +108,7 @@ tetris_findPoints(uint8_t level, uint8_t lines)
 }
 
 void
-tetris_addToArena(uint8_t i)
+tetris_addToArena(uint8_t *placed, uint8_t i)
 {
     // bounds checking
     if (i < ARENA_SIZE && i >= 0) placed[i] = 1;
@@ -218,7 +217,7 @@ tetris_drawTetromino(SDL_Renderer *renderer, uint8_t piece[PIECE_SIZE],
 }
 
 void
-tetris_printPlaced()
+tetris_printPlaced(uint8_t *placed)
 {
     uint8_t i = 0;
 
@@ -233,7 +232,7 @@ tetris_printPlaced()
 }
 
 void
-tetris_clearRow(uint8_t c)
+tetris_clearRow(uint8_t *placed, uint8_t c)
 {
     uint8_t temp[ARENA_SIZE];
     memset(temp, 0, sizeof(uint8_t) * ARENA_SIZE);
@@ -253,7 +252,7 @@ tetris_clearRow(uint8_t c)
 }
 
 uint8_t
-tetris_checkForRowClearing()
+tetris_checkForRowClearing(uint8_t *placed)
 {
     uint8_t row_count = 0;
     uint8_t lines = 0;
@@ -265,7 +264,7 @@ tetris_checkForRowClearing()
             uint8_t i = y * ARENA_WIDTH + x;
             if (placed[i]) row_count++;
             if ((x == ARENA_WIDTH - 1) && (row_count == ARENA_WIDTH)) {
-                tetris_clearRow(y);
+                tetris_clearRow(placed, y);
                 lines++;
             }
 
@@ -275,7 +274,7 @@ tetris_checkForRowClearing()
 }
 
 void
-tetris_addToPlaced(uint8_t *piece, SDL_Point position)
+tetris_addToPlaced(uint8_t *placed, uint8_t *piece, SDL_Point position)
 {
 
     uint8_t pos = tetris_getPlacedPosition(position);
@@ -285,12 +284,12 @@ tetris_addToPlaced(uint8_t *piece, SDL_Point position)
         uint8_t piece_i = y * PIECE_WIDTH + x;
         uint8_t placed_i = y * ARENA_WIDTH + x;
         if (piece[piece_i])
-            tetris_addToArena(pos + placed_i);
+            tetris_addToArena(placed, pos + placed_i);
     }
 }
 
 uint8_t
-tetris_collisionCheck(uint8_t *piece, SDL_Point position)
+tetris_collisionCheck(uint8_t *placed, uint8_t *piece, SDL_Point position)
 {
     Size size; tetris_getPieceSize(piece, &size);
     uint8_t placed_pos = tetris_getPlacedPosition(position);
@@ -420,7 +419,7 @@ tetris_init(Game *game)
 }
 
 void
-tetris_drawPlaced(SDL_Renderer *renderer) {
+tetris_drawPlaced(uint8_t *placed, SDL_Renderer *renderer) {
     for (int x = 0; x < ARENA_WIDTH; ++x) {
         for (int y = 0; y < ARENA_HEIGHT; ++y) {
             uint8_t i = y * ARENA_WIDTH + x;
@@ -447,7 +446,7 @@ update_loose(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
     SDL_Point point = {.x = ARENA_WIDTH_PX / 2 + ARENA_PADDING_PX,
                        .y = ARENA_HEIGHT_PX / 2};
 
-    tetris_drawPlaced(game->renderer);
+    tetris_drawPlaced(game->placed, game->renderer);
     draw_text(game->renderer, game->loose_font, "You Loose", point);
     return 1;
 }
@@ -464,7 +463,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
 
     if (init) {
         srand(time(NULL));
-        memset(&placed, 0, sizeof(uint8_t) * ARENA_SIZE);
+        memset(&game->placed, 0, sizeof(uint8_t) * ARENA_SIZE);
         tetris_pickPeice(current_piece, &color);
         init = false;
     }
@@ -483,7 +482,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
         case SDLK_d: {
             SDL_Point check = {.x = piece_position.x + 1,
                                .y = piece_position.y};
-            if (!tetris_collisionCheck(current_piece, check)) {
+            if (!tetris_collisionCheck(game->placed, current_piece, check)) {
                 piece_position.x++;
             }
             break;
@@ -492,7 +491,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
             SDL_Point check = {.x = piece_position.x - 1,
                                .y = piece_position.y};
 
-            if (!tetris_collisionCheck(current_piece, check)) {
+            if (!tetris_collisionCheck(game->placed, current_piece, check)) {
                 piece_position.x--;
             }
             break;
@@ -504,13 +503,15 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
         case SDLK_r: {
             uint8_t rotated[PIECE_SIZE];
             tetris_rotatePiece(current_piece, rotated);
-            uint8_t collide = tetris_collisionCheck(rotated, piece_position);
+            uint8_t collide = tetris_collisionCheck(game->placed,
+                                                    rotated, piece_position);
             bool canRotate = true;
             switch(collide) {
                 case COLLIDE_LEFT: {
                     while(true) {
                         piece_position.x++;
-                        if (!tetris_collisionCheck(rotated, piece_position))
+                        if (!tetris_collisionCheck(game->placed, rotated,
+                                                   piece_position))
                             break;
                     }
                     break;
@@ -518,7 +519,8 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
                 case COLLIDE_RIGHT: {
                     while(true) {
                         piece_position.x--;
-                        if (!tetris_collisionCheck(rotated, piece_position))
+                        if (!tetris_collisionCheck(game->placed, rotated,
+                                                   piece_position))
                             break;
                     }
                     break;
@@ -539,7 +541,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
         SDL_Point check = {.x = piece_position.x,
                            .y = piece_position.y + 1};
 
-        if (!tetris_collisionCheck(current_piece, check))  {
+        if (!tetris_collisionCheck(game->placed, current_piece, check))  {
             piece_position.y++;
         } else{
             Size size;
@@ -547,24 +549,25 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
             if (piece_position.y - size.h < 0) {
                 Size size;
                 tetris_getPieceSize(current_piece, &size);
-                tetris_addToPlaced(current_piece, piece_position);
+                tetris_addToPlaced(game->placed, current_piece,
+                                   piece_position);
                 return 1;
             } else {
                 fall_speed = 30;
-                tetris_addToPlaced(current_piece, piece_position);
+                tetris_addToPlaced(game->placed, current_piece, piece_position);
                 tetris_pickPeice(current_piece, &color);
                 piece_position.y = -1;
             }
         } 
     }
 
-    uint8_t lines = tetris_checkForRowClearing();
+    uint8_t lines = tetris_checkForRowClearing(game->placed);
     game->score += tetris_findPoints(game->level, lines);
     char score_string[255];
     sprintf(score_string, "score %d", game->score);
     SDL_Point point = {.x = ARENA_PADDING_PX / 2, .y = 50};
     draw_text(game->renderer, game->ui_font, score_string, point);
-    tetris_drawPlaced(game->renderer);
+    tetris_drawPlaced(game->placed, game->renderer);
     return 0;
 }
 
