@@ -126,9 +126,9 @@ tetris_findPoints(uint8_t lines)
 {
     switch(lines) {
         case 1: return 40 * (level + 1);
-        case 2: return 80 * (level + 1);
-        case 3: return 120 * (level + 1);
-        case 4: return 400 * (level + 1);
+        case 2: return 100 * (level + 1);
+        case 3: return 300 * (level + 1);
+        case 4: return 1200 * (level + 1);
     }
 
     return 0;
@@ -270,10 +270,11 @@ tetris_clearRow(uint8_t c)
     memcpy(placed, temp, sizeof(uint8_t) * ARENA_SIZE);
 }
 
-void
+uint8_t
 tetris_checkForRowClearing()
 {
     uint8_t row_count = 0;
+    uint8_t lines = 0;
     for (uint8_t y = 0; y < ARENA_HEIGHT; ++y) {
 
         for (uint8_t x = 0; x < ARENA_WIDTH; ++x) {
@@ -282,12 +283,13 @@ tetris_checkForRowClearing()
             uint8_t i = y * ARENA_WIDTH + x;
             if (placed[i]) row_count++;
             if ((x == ARENA_WIDTH - 1) && (row_count == ARENA_WIDTH)) {
-                /* printf("clear me\n"); */
                 tetris_clearRow(y);
+                lines++;
             }
 
         }
     }
+    return lines;
 }
 
 void
@@ -348,8 +350,8 @@ tetris_collisionCheck(uint8_t *piece, SDL_Point position)
 void
 tetris_pickPeice()
 {
-    /* uint8_t piece = PIECE_I; */
-    uint8_t piece = (float)((float)rand() / (float)RAND_MAX) * PIECE_COUNT;
+    uint8_t piece = PIECE_I;
+    /* uint8_t piece = (float)((float)rand() / (float)RAND_MAX) * PIECE_COUNT; */
 
     memcpy(&current_piece, &tetris_tetrominos[piece], sizeof(uint8_t) *
            PIECE_SIZE);
@@ -554,7 +556,12 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
         } 
     }
 
-    tetris_checkForRowClearing();
+    uint8_t lines = tetris_checkForRowClearing();
+    score += tetris_findPoints(lines);
+    if (lines != 0) {
+        printf("score: %d\n", score);
+    }
+    /* printf() */
     /* tetris_printPlaced(); */
     /* printf("\n"); */
 }
