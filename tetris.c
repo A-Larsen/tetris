@@ -50,8 +50,6 @@ typedef uint8_t (*Update_callback)(Game *game, uint64_t frame, SDL_KeyCode key,
                                    bool keydown);
 
 static uint8_t placed[ARENA_SIZE]; // 8 x 18
-/* static TTF_Font *loose_font = NULL; */
-/* static TTF_Font *ui_font = NULL; */
 
 static void 
 draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text,
