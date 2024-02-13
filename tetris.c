@@ -122,15 +122,42 @@ const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
 };
 
 static void 
-draw_text(const char *text, SDL_Rect rect)
+draw_text(const char *text, SDL_Point point)
 {
+    int w = 0;
+    int h = 0;
+    TTF_SizeText(font, loose_text, &w, &h);
+
     SDL_Color font_color = {.r = 255, .g = 255, .b =255, .a = 255};
     SDL_Surface *surface = TTF_RenderText_Solid(font, loose_text, font_color);
 
     if (surface == NULL) {
         fprintf(stderr, "Could not create text surface\n%s", SDL_GetError());
     }
+
+    SDL_Rect rect = {
+        .x = point.x - (w / 2),
+        .y = point.y - (h / 2),
+        .w = w,
+        .h = h,
+    };
+
+    int padding = 8;
+    SDL_Rect text_background = {
+        .x = rect.x - padding,
+        .y = rect.y - padding,
+        .w = rect.w + padding * 2,
+        .h = rect.h + padding * 2
+    };
+
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
+
+    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
+    SDL_RenderFillRect(renderer, &text_background);
+    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
+    SDL_RenderDrawRect(renderer, &text_background);
+
+
     SDL_RenderCopy(renderer, texture, NULL, &rect);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
@@ -418,28 +445,31 @@ tetris_init()
 void
 tetris_drawLooseText()
 {
-    int w = 0;
-    int h = 0;
-    TTF_SizeText(font, loose_text, &w, &h);
+    /* int w = 0; */
+    /* int h = 0; */
+    /* TTF_SizeText(font, loose_text, &w, &h); */
 
-    SDL_Rect rect = {
-        .x = ((ARENA_WIDTH_PX / 2) - (w / 2)) + ARENA_PADDING_PX,
-        .y = (ARENA_HEIGHT_PX / 2) - (h / 2),
-        .w = w,
-        .h = h,
-    };
-    int padding = 8;
-    SDL_Rect text_background = {
-        .x = rect.x - padding,
-        .y = rect.y - padding,
-        .w = rect.w + padding * 2,
-        .h = rect.h + padding * 2
-    };
-    SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
-    SDL_RenderFillRect(renderer, &text_background);
-    SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
-    SDL_RenderDrawRect(renderer, &text_background);
-    draw_text(loose_text, rect);
+    /* SDL_Rect rect = { */
+    /*     .x = ((ARENA_WIDTH_PX / 2) - (w / 2)) + ARENA_PADDING_PX, */
+    /*     .y = (ARENA_HEIGHT_PX / 2) - (h / 2), */
+    /*     .w = w, */
+    /*     .h = h, */
+    /* }; */
+    /* int padding = 8; */
+    /* SDL_Rect text_background = { */
+    /*     .x = rect.x - padding, */
+    /*     .y = rect.y - padding, */
+    /*     .w = rect.w + padding * 2, */
+    /*     .h = rect.h + padding * 2 */
+    /* }; */
+    /* SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255); */
+    /* SDL_RenderFillRect(renderer, &text_background); */
+    /* SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255); */
+    /* SDL_RenderDrawRect(renderer, &text_background); */
+    SDL_Point point = {.x = ARENA_WIDTH_PX / 2 + ARENA_PADDING_PX,
+                       .y = ARENA_HEIGHT_PX / 2};
+
+    draw_text(loose_text, point);
 }
 
 void
@@ -564,9 +594,11 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
 
     uint8_t lines = tetris_checkForRowClearing();
     score += tetris_findPoints(lines);
-    if (lines != 0) {
-        printf("score: %d\n", score);
-    }
+    /* char score_string[255]; */
+    /* sprintf(score_string, "score %d", score); */
+    /* if (lines != 0) { */
+    /*     printf("score: %d\n", score); */
+    /* } */
 }
 
 void
