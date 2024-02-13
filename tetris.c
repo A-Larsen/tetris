@@ -186,9 +186,9 @@ tetris_rotatePiece(uint8_t *piece, uint8_t *rotated)
     uint8_t i = 0;
 
     // 90 degrees
-    for (int y = 0; y < PIECE_HEIGHT; ++y) {
-        for (int x = PIECE_WIDTH - 1; x >= 0; --x) {
-            uint8_t j = x * PIECE_WIDTH + y;
+    for (int x = 0; x < PIECE_HEIGHT; ++x) {
+        for (int y = PIECE_WIDTH - 1; y >= 0; --y) {
+            uint8_t j = y * PIECE_WIDTH + x;
             rotated[i] = piece[j];
             ++i;
         }
@@ -432,9 +432,7 @@ tetris_drawPlaced(uint8_t *placed, SDL_Renderer *renderer) {
             SDL_RenderFillRect(renderer, &rect);
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
             SDL_RenderDrawRect(renderer, &rect);
-            
         }
-        
     }
 }
 
