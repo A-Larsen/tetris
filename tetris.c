@@ -42,13 +42,15 @@ typedef struct _Game {
     uint8_t score;
 } Game;
 
+typedef uint8_t (*Update_callback)(Game *game, uint64_t frame, SDL_KeyCode key,
+                                   bool keydown);
+
 static uint8_t placed[ARENA_SIZE]; // 8 x 18
 static SDL_Window *window = NULL;
 static SDL_Renderer *renderer = NULL;
 static TTF_Font *loose_font = NULL;
 static TTF_Font *ui_font = NULL;
-typedef uint8_t (*Update_callback)(Game *game, uint64_t frame, SDL_KeyCode key,
-                                   bool keydown);
+
 static void 
 draw_text(TTF_Font *font, const char *text, SDL_Point point)
 {
