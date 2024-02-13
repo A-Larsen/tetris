@@ -51,44 +51,6 @@ typedef uint8_t (*Update_callback)(Game *game, uint64_t frame, SDL_KeyCode key,
                                    bool keydown);
 
 
-static const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
-                               [PIECE_SIZE] = {
-    // each peice has 4 ones
-    [PIECE_I] = {0,0,0,0,
-                 1,1,1,1,
-                 0,0,0,0,
-                 0,0,0,0},
-
-    [PIECE_J] = {0,0,0,0,
-                 1,0,0,0,
-                 1,1,1,0,
-                 0,0,0,0},
-
-    [PIECE_L] = {0,0,0,0,
-                 0,0,1,0,
-                 1,1,1,0,
-                 0,0,0,0},
-
-    [PIECE_O] = {0,0,0,0,
-                 0,1,1,0,
-                 0,1,1,0,
-                 0,0,0,0},
-
-    [PIECE_S] = {0,0,0,0,
-                 0,1,1,0,
-                 1,1,0,0,
-                 0,0,0,0},
-
-    [PIECE_T] = {0,0,0,0,
-                 0,1,0,0,
-                 1,1,1,0,
-                 0,0,0,0},
-
-    [PIECE_Z] = {0,0,0,0,
-                 1,1,0,0,
-                 0,1,1,0,
-                 0,0,0,0},
-};
 
 static void 
 draw_text(TTF_Font *font, const char *text, SDL_Point point)
@@ -360,6 +322,44 @@ tetris_collisionCheck(uint8_t *piece, SDL_Point position)
 void
 tetris_pickPeice(uint8_t *piece, uint8_t *color)
 {
+    const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
+                                   [PIECE_SIZE] = {
+        // each peice has 4 ones
+        [PIECE_I] = {0,0,0,0,
+                     1,1,1,1,
+                     0,0,0,0,
+                     0,0,0,0},
+
+        [PIECE_J] = {0,0,0,0,
+                     1,0,0,0,
+                     1,1,1,0,
+                     0,0,0,0},
+
+        [PIECE_L] = {0,0,0,0,
+                     0,0,1,0,
+                     1,1,1,0,
+                     0,0,0,0},
+
+        [PIECE_O] = {0,0,0,0,
+                     0,1,1,0,
+                     0,1,1,0,
+                     0,0,0,0},
+
+        [PIECE_S] = {0,0,0,0,
+                     0,1,1,0,
+                     1,1,0,0,
+                     0,0,0,0},
+
+        [PIECE_T] = {0,0,0,0,
+                     0,1,0,0,
+                     1,1,1,0,
+                     0,0,0,0},
+
+        [PIECE_Z] = {0,0,0,0,
+                     1,1,0,0,
+                     0,1,1,0,
+                     0,0,0,0},
+    };
     const uint8_t piece_colors[PIECE_COLOR_SIZE] = {
         COLOR_RED,
         COLOR_GREEN,
