@@ -50,7 +50,6 @@ typedef struct _PlacedPeice {
     SDL_Point position;
 } PlacedPeice;
 
-static void update_main(uint64_t frame, SDL_KeyCode key, bool keydown);
 static uint8_t level = 0;
 static uint16_t score = 0;
 static uint8_t placed[ARENA_SIZE]; // 8 x 18
@@ -62,10 +61,10 @@ static TTF_Font *loose_font = NULL;
 static TTF_Font *ui_font = NULL;
 static SDL_Texture *texture_lost_text = NULL;
 static const char * loose_text = "You Lost";
-typedef void (*Update_callback)(uint64_t frame, SDL_KeyCode key, bool keydown);
+typedef uint8_t (*Update_callback)(uint64_t frame, SDL_KeyCode key,
+                                   bool keydown);
 static uint8_t current_piece[PIECE_SIZE];
 static uint8_t current_piece_color = COLOR_RED;
-static Update_callback update = update_main;
 static int old_repeat_delay;
 static int old_repeat_interval;
 
@@ -464,16 +463,19 @@ tetris_drawPlaced() {
     }
 }
 
-static void
+// id of 1
+static uint8_t
 update_loose(uint64_t frame, SDL_KeyCode key, bool keydown)
 {
     SDL_Point point = {.x = ARENA_WIDTH_PX / 2 + ARENA_PADDING_PX,
                        .y = ARENA_HEIGHT_PX / 2};
 
     draw_text(loose_font, loose_text, point);
+    return 1;
 }
 
-static void
+// id of 0
+static uint8_t
 update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
 {
     static SDL_Point piece_position = {.x = 0, .y = -1};
@@ -558,7 +560,8 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
                 Size size;
                 tetris_getPieceSize(current_piece, &size);
                 tetris_addToPlaced(piece_position);
-                update = update_loose;
+                /* update = update_loose; */
+                return 1;
             } else {
                 fall_speed = 30;
                 tetris_addToPlaced(piece_position);
@@ -574,6 +577,7 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
     sprintf(score_string, "score %d", score);
     SDL_Point point = {.x = ARENA_PADDING_PX / 2, .y = 50};
     draw_text(ui_font, score_string, point);
+    return 0;
 }
 
 void
@@ -582,8 +586,16 @@ tetris_update(const uint8_t fps)
     uint64_t frame = 0;
     bool quit = false;
     bool keydown = false;
+    uint8_t update_id = 0;
+    Update_callback update = update_main;
 
     while (!quit) {
+
+        switch(update_id) {
+            case 0: update = update_main; break;
+            case 1: update = update_loose; break;
+        }
+
         tetris_setColor(COLOR_GREY);
         SDL_RenderClear(renderer);
         tetris_setColor(COLOR_BLACK);
@@ -616,7 +628,7 @@ tetris_update(const uint8_t fps)
         }
 
         tetris_drawPlaced();
-        update(frame, key, keydown);
+        update_id = update(frame, key, keydown);
 
 
         uint32_t end = SDL_GetTicks();
