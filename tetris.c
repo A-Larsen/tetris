@@ -49,9 +49,6 @@ static TTF_Font *loose_font = NULL;
 static TTF_Font *ui_font = NULL;
 typedef uint8_t (*Update_callback)(Game *game, uint64_t frame, SDL_KeyCode key,
                                    bool keydown);
-
-
-
 static void 
 draw_text(TTF_Font *font, const char *text, SDL_Point point)
 {
@@ -360,12 +357,14 @@ tetris_pickPeice(uint8_t *piece, uint8_t *color)
                      0,1,1,0,
                      0,0,0,0},
     };
+
     const uint8_t piece_colors[PIECE_COLOR_SIZE] = {
         COLOR_RED,
         COLOR_GREEN,
         COLOR_BLUE,
         COLOR_ORANGE,
     };
+
     uint8_t id = (float)((float)rand() / (float)RAND_MAX) * PIECE_COUNT;
 
     memcpy(piece, &tetris_tetrominos[id], sizeof(uint8_t) *
