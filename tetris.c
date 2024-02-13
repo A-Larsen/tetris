@@ -52,7 +52,8 @@ static TTF_Font *loose_font = NULL;
 static TTF_Font *ui_font = NULL;
 
 static void 
-draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text, SDL_Point point)
+draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text,
+          SDL_Point point)
 {
     int w = 0;
     int h = 0;
