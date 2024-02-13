@@ -52,13 +52,9 @@ static SDL_Renderer *renderer = NULL;
 static TTF_Font *loose_font = NULL;
 static TTF_Font *ui_font = NULL;
 static SDL_Texture *texture_lost_text = NULL;
-static const char * loose_text = "You Lost";
 typedef uint8_t (*Update_callback)(uint64_t frame, SDL_KeyCode key,
                                    bool keydown);
-/* static uint8_t current_piece[PIECE_SIZE]; */
 static uint8_t current_piece_color = COLOR_RED;
-static int old_repeat_delay;
-static int old_repeat_interval;
 
 static const SDL_Color colors[] = {
     [COLOR_RED] = {.r = 217, .g = 100, .b = 89, .a = 255},
@@ -113,7 +109,7 @@ draw_text(TTF_Font *font, const char *text, SDL_Point point)
 {
     int w = 0;
     int h = 0;
-    TTF_SizeText(font, loose_text, &w, &h);
+    TTF_SizeText(font, text, &w, &h);
 
     SDL_Color font_color = {.r = 255, .g = 255, .b =255, .a = 255};
     SDL_Surface *surface = TTF_RenderText_Solid(font, text, font_color);
@@ -448,7 +444,7 @@ update_loose(uint64_t frame, SDL_KeyCode key, bool keydown)
     SDL_Point point = {.x = ARENA_WIDTH_PX / 2 + ARENA_PADDING_PX,
                        .y = ARENA_HEIGHT_PX / 2};
 
-    draw_text(loose_font, loose_text, point);
+    draw_text(loose_font, "You Loose", point);
     return 1;
 }
 
