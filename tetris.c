@@ -394,8 +394,7 @@ tetris_collisionCheck(uint8_t *piece, SDL_Point position)
 void
 tetris_pickPeice()
 {
-    uint8_t piece = PIECE_I;
-    /* uint8_t piece = (float)((float)rand() / (float)RAND_MAX) * PIECE_COUNT; */
+    uint8_t piece = (float)((float)rand() / (float)RAND_MAX) * PIECE_COUNT;
 
     memcpy(&current_piece, &tetris_tetrominos[piece], sizeof(uint8_t) *
            PIECE_SIZE);
