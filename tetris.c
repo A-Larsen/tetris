@@ -50,14 +50,6 @@ static TTF_Font *ui_font = NULL;
 typedef uint8_t (*Update_callback)(Game *game, uint64_t frame, SDL_KeyCode key,
                                    bool keydown);
 
-static const SDL_Color colors[] = {
-    [COLOR_RED] = {.r = 217, .g = 100, .b = 89, .a = 255},
-    [COLOR_GREEN] = {.r = 88, .g = 140, .b = 126, .a = 255},
-    [COLOR_BLUE] = {.r = 146, .g = 161, .b = 185, .a = 255},
-    [COLOR_ORANGE] = {.r = 242, .g = 174, .b = 114, .a = 255},
-    [COLOR_GREY] = {.r = 89, .g = 89, .b = 89, .a = 89},
-    [COLOR_BLACK] = {.r = 0, .g = 0, .b = 0, .a = 0},
-};
 
 static const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
                                [PIECE_SIZE] = {
@@ -171,6 +163,14 @@ tetris_getPlacedPosition(SDL_Point pos)
 void
 tetris_setColor(uint8_t color)
 {
+    const SDL_Color colors[] = {
+        [COLOR_RED] = {.r = 217, .g = 100, .b = 89, .a = 255},
+        [COLOR_GREEN] = {.r = 88, .g = 140, .b = 126, .a = 255},
+        [COLOR_BLUE] = {.r = 146, .g = 161, .b = 185, .a = 255},
+        [COLOR_ORANGE] = {.r = 242, .g = 174, .b = 114, .a = 255},
+        [COLOR_GREY] = {.r = 89, .g = 89, .b = 89, .a = 89},
+        [COLOR_BLACK] = {.r = 0, .g = 0, .b = 0, .a = 0},
+    };
     SDL_SetRenderDrawColor(renderer, colors[color].r, colors[color].g,
                            colors[color].b, colors[color].a);
 }
