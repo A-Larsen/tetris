@@ -53,7 +53,6 @@ static TTF_Font *loose_font = NULL;
 static TTF_Font *ui_font = NULL;
 typedef uint8_t (*Update_callback)(uint64_t frame, SDL_KeyCode key,
                                    bool keydown);
-static uint8_t current_piece_color = COLOR_RED;
 
 static const SDL_Color colors[] = {
     [COLOR_RED] = {.r = 217, .g = 100, .b = 89, .a = 255},
@@ -363,13 +362,13 @@ tetris_collisionCheck(uint8_t *piece, SDL_Point position)
 }
 
 void
-tetris_pickPeice(uint8_t *piece)
+tetris_pickPeice(uint8_t *piece, uint8_t *color)
 {
     uint8_t id = (float)((float)rand() / (float)RAND_MAX) * PIECE_COUNT;
 
     memcpy(piece, &tetris_tetrominos[id], sizeof(uint8_t) *
            PIECE_SIZE);
-    current_piece_color = piece_colors[((current_piece_color) + 1) % 
+    *color = piece_colors[((*color) + 1) % 
                           PIECE_COLOR_SIZE];
 }
 
@@ -454,12 +453,13 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
     static SDL_Point piece_position = {.x = 0, .y = -1};
     static uint8_t fall_speed = 30;
     static uint8_t current_piece[PIECE_SIZE];
+    static uint8_t color = COLOR_RED;
     static bool init = true;
 
     if (init) {
         srand(time(NULL));
         memset(&placed, 0, sizeof(uint8_t) * ARENA_SIZE);
-        tetris_pickPeice(current_piece);
+        tetris_pickPeice(current_piece, &color);
         init = false;
     }
 
@@ -470,7 +470,7 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
     }
 
     tetris_drawTetromino(renderer, current_piece, piece_position,
-            current_piece_color);
+            color);
     if (!keydown) fall_speed = 30;
 
     switch(key) {
@@ -546,7 +546,7 @@ update_main(uint64_t frame, SDL_KeyCode key, bool keydown)
             } else {
                 fall_speed = 30;
                 tetris_addToPlaced(current_piece, piece_position);
-                tetris_pickPeice(current_piece);
+                tetris_pickPeice(current_piece, &color);
                 piece_position.y = -1;
             }
         } 
