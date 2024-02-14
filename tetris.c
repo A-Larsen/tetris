@@ -377,6 +377,8 @@ tetris_pickPeice(uint8_t *piece, uint8_t *color)
 void
 tetris_init(Game *game)
 {
+    memset(game, 0, sizeof(Game));
+
     if (SDL_Init(SDL_INIT_VIDEO) != 0) {
         fprintf(stderr, "could not initialize SDL2\n%s", SDL_GetError());
         exit(1);
