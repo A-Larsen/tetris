@@ -82,6 +82,11 @@ draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text,
 
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
 
+    if (texture == NULL) {
+        fprintf(stderr, "could not create texture\n%s", SDL_GetError());
+        exit(1);
+    }
+
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderFillRect(renderer, &text_background);
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
