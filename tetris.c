@@ -647,6 +647,7 @@ tetris_quit(Game *game)
     TTF_CloseFont(game->ui_font);
     SDL_DestroyWindow(game->window);
     SDL_DestroyRenderer(game->renderer);
+    TTF_Quit();
     SDL_Quit();
 }
 
