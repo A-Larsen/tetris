@@ -40,7 +40,7 @@ typedef struct _Size {
 
 typedef struct _Game {
     uint8_t level;
-    uint8_t score;
+    uint64_t score;
     SDL_Renderer *renderer;
     SDL_Window *window;
     TTF_Font *lose_font;
@@ -569,7 +569,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
     uint8_t lines = tetris_checkForRowClearing(game->placed);
     game->score += tetris_findPoints(game->level, lines);
     char score_string[255];
-    sprintf(score_string, "score %d", game->score);
+    sprintf(score_string, "score %ld", game->score);
     SDL_Point point = {.x = ARENA_PADDING_PX / 2, .y = 50};
     draw_text(game->renderer, game->ui_font, score_string, point);
     tetris_drawPlaced(game->placed, game->renderer);
