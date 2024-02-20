@@ -27,6 +27,7 @@ enum {PIECE_I, PIECE_J, PIECE_L, PIECE_O, PIECE_S, PIECE_T, PIECE_Z,
 
 enum {COLOR_RED, COLOR_GREEN, COLOR_BLUE, COLOR_ORANGE, COLOR_GREY,
       COLOR_BLACK, COLOR_SIZE};
+
 enum {COLLIDE_LEFT = 0b1000, COLLIDE_RIGHT = 0b0100, 
       COLLIDE_TOP = 0b0010, COLLIDE_BOTTOM = 0b0001, COLLIDE_PIECE = 0b1111};
 
@@ -42,7 +43,7 @@ typedef struct _Game {
     uint8_t score;
     SDL_Renderer *renderer;
     SDL_Window *window;
-    TTF_Font *loose_font;
+    TTF_Font *lose_font;
     TTF_Font *ui_font;
     uint8_t placed[ARENA_SIZE]; // 8 x 18 */
 } Game;
@@ -323,11 +324,11 @@ tetris_collisionCheck(uint8_t *placed, uint8_t *piece, SDL_Point position)
 }
 
 void
-tetris_pickPeice(uint8_t *piece, uint8_t *color)
+tetris_pickPiece(uint8_t *piece, uint8_t *color)
 {
     const uint8_t tetris_tetrominos[TETROMINOS_COUNT]
                                    [PIECE_SIZE] = {
-        // each peice has 4 ones
+        // each piece has 4 ones
         [PIECE_I] = {0,0,0,0,
                      1,1,1,1,
                      0,0,0,0,
@@ -393,9 +394,9 @@ tetris_init(Game *game)
         fprintf(stderr, "could not initialize TTF\n%s", SDL_GetError());
         exit(1);
     }
-    game->loose_font = TTF_OpenFont("./fonts/NotoSansMono-Regular.ttf", 50);
+    game->lose_font = TTF_OpenFont("./fonts/NotoSansMono-Regular.ttf", 50);
 
-    if (game->loose_font == NULL) {
+    if (game->lose_font == NULL) {
         fprintf(stderr, "could not open font %s\n", SDL_GetError());
     }
 
@@ -445,13 +446,13 @@ tetris_drawPlaced(uint8_t *placed, SDL_Renderer *renderer) {
 
 // id of 1
 static uint8_t
-update_loose(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
+update_lose(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
 {
     SDL_Point point = {.x = ARENA_WIDTH_PX / 2 + ARENA_PADDING_PX,
                        .y = ARENA_HEIGHT_PX / 2};
 
     tetris_drawPlaced(game->placed, game->renderer);
-    draw_text(game->renderer, game->loose_font, "You Loose", point);
+    draw_text(game->renderer, game->lose_font, "You Lose", point);
     return 1;
 }
 
@@ -468,7 +469,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
     if (init) {
         srand(time(NULL));
         memset(&game->placed, 0, sizeof(uint8_t) * ARENA_SIZE);
-        tetris_pickPeice(current_piece, &color);
+        tetris_pickPiece(current_piece, &color);
         init = false;
     }
 
@@ -559,7 +560,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
             } else {
                 fall_speed = 30;
                 tetris_addToPlaced(game->placed, current_piece, piece_position);
-                tetris_pickPeice(current_piece, &color);
+                tetris_pickPiece(current_piece, &color);
                 piece_position.y = -1;
             }
         } 
@@ -588,7 +589,7 @@ tetris_update(Game *game, const uint8_t fps)
 
         switch(update_id) {
             case 0: update = update_main; break;
-            case 1: update = update_loose; break;
+            case 1: update = update_lose; break;
         }
 
         tetris_setColor(game->renderer, COLOR_GREY);
@@ -643,7 +644,7 @@ tetris_update(Game *game, const uint8_t fps)
 void
 tetris_quit(Game *game)
 {
-    TTF_CloseFont(game->loose_font);
+    TTF_CloseFont(game->lose_font);
     TTF_CloseFont(game->ui_font);
     SDL_DestroyWindow(game->window);
     SDL_DestroyRenderer(game->renderer);

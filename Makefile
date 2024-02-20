@@ -1,3 +1,11 @@
 LIBS = -lSDL2 -lSDL2_ttf -lm
-build: tetris.c
-	gcc -g -o tetris tetris.c $(LIBS)
+
+PROG = tetris
+
+build: $(PROG).c
+	gcc -g -o $(PROG) $(PROG).c $(LIBS)
+
+clean:
+	rm -rf $(PROG)
+
+.PHONY: clean
