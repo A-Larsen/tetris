@@ -68,6 +68,7 @@ draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text,
 {
     int w = 0;
     int h = 0;
+
     TTF_SizeText(font, text, &w, &h);
 
     SDL_Color font_color = {.r = 255, .g = 255, .b =255, .a = 255};
@@ -83,6 +84,7 @@ draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text,
     };
 
     int padding = 8;
+
     SDL_Rect text_background = {
         .x = rect.x - padding,
         .y = rect.y - padding,
@@ -98,8 +100,6 @@ draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text,
     SDL_RenderFillRect(renderer, &text_background);
     SDL_SetRenderDrawColor(renderer, 255, 255, 255, 255);
     SDL_RenderDrawRect(renderer, &text_background);
-
-
     SDL_RenderCopy(renderer, texture, NULL, &rect);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
@@ -143,6 +143,7 @@ tetris_setColor(SDL_Renderer *renderer, uint8_t color)
         [COLOR_GREY] = {.r = 89, .g = 89, .b = 89, .a = 89},
         [COLOR_BLACK] = {.r = 0, .g = 0, .b = 0, .a = 0},
     };
+
     SDL_SetRenderDrawColor(renderer, colors[color].r, colors[color].g,
                            colors[color].b, colors[color].a);
 }
@@ -212,6 +213,7 @@ tetris_drawTetromino(SDL_Renderer *renderer, uint8_t piece[PIECE_SIZE],
 {
     for (int i = 0; i < TETROMINOS_DATA_SIZE; ++i) {
         if (!piece[i]) continue;
+
         int x, y; tetris_getXY(i, &x, &y);
 
         SDL_Rect rect = {
@@ -219,6 +221,7 @@ tetris_drawTetromino(SDL_Renderer *renderer, uint8_t piece[PIECE_SIZE],
             .y = (y + position.y - ARENA_PADDING_TOP) * BLOCK_SIZE_PX,
             .w = BLOCK_SIZE_PX, .h = BLOCK_SIZE_PX
         };
+
         tetris_setColor(renderer, color);
         SDL_RenderFillRect(renderer, &rect);
         SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -233,10 +236,12 @@ tetris_printPlaced(uint8_t *placed)
 
     for (int y = 0; y < ARENA_HEIGHT; ++y) {
         printf("%.3d: ", y * ARENA_WIDTH);
+
         for (int x = 0; x < ARENA_WIDTH; ++x) {
             i = (y * ARENA_WIDTH) + x;
             printf("%d", placed[i]);
         }
+
         printf("\n");
     }
 }
@@ -251,10 +256,12 @@ tetris_clearRow(uint8_t *placed, uint8_t c)
     for (int y = c; y > 0; --y) {
         for (uint8_t x = 0; x < ARENA_WIDTH; ++x) {
             uint8_t i = y * ARENA_WIDTH + x;
+
             if (i >= 0) {
                 temp[i] = placed[i - ARENA_WIDTH];
 
             }
+
         }
     }
 
@@ -272,7 +279,9 @@ tetris_checkForRowClearing(uint8_t *placed)
             if (x == 0) row_count = 0;
 
             uint8_t i = y * ARENA_WIDTH + x;
+
             if (placed[i]) row_count++;
+
             if ((x == ARENA_WIDTH - 1) && (row_count == ARENA_WIDTH)) {
                 tetris_clearRow(placed, y);
                 lines++;
@@ -292,6 +301,7 @@ tetris_addToPlaced(uint8_t *placed, uint8_t *piece, SDL_Point position)
         int x, y; tetris_getXY(i, &x, &y);
         uint8_t piece_i = y * PIECE_WIDTH + x;
         uint8_t placed_i = y * ARENA_WIDTH + x;
+
         if (piece[piece_i])
             tetris_addToArena(placed, pos + placed_i);
     }
@@ -425,12 +435,15 @@ tetris_drawPlaced(uint8_t *placed, SDL_Renderer *renderer) {
     for (int x = 0; x < ARENA_WIDTH; ++x) {
         for (int y = 0; y < ARENA_HEIGHT; ++y) {
             uint8_t i = y * ARENA_WIDTH + x;
+
             if (!placed[i]) continue;
+
             SDL_Rect rect = {
                 .x = (x * BLOCK_SIZE_PX) + ARENA_PADDING_PX,
                 .y = (y - ARENA_PADDING_TOP) * BLOCK_SIZE_PX,
                 .w = BLOCK_SIZE_PX, .h = BLOCK_SIZE_PX
             };
+
             tetris_setColor(renderer, COLOR_GREY);
             SDL_RenderFillRect(renderer, &rect);
             SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
@@ -519,8 +532,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
                                                             check);
                 }
 
-            } 
-            else if (collide == COLLIDE_RIGHT) {
+            } else if (collide == COLLIDE_RIGHT) {
                 while(collide == COLLIDE_RIGHT) {
                     check.x--;
                     collide = tetris_collisionCheck(game->placed, rotated,
@@ -560,10 +572,12 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
     }
 
     uint8_t lines = tetris_checkForRowClearing(game->placed);
-    game->score += tetris_findPoints(game->level, lines);
-    char score_string[255];
-    sprintf(score_string, "score %ld", game->score);
     SDL_Point point = {.x = ARENA_PADDING_PX / 2, .y = 50};
+    char score_string[255];
+
+    game->score += tetris_findPoints(game->level, lines);
+
+    sprintf(score_string, "score %ld", game->score);
     draw_text(game->renderer, game->ui_font, score_string, point);
     tetris_drawPlaced(game->placed, game->renderer);
     return 0;
