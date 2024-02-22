@@ -625,6 +625,7 @@ tetris_update(Game *game, const uint8_t fps)
 
                     break;
                 }
+
                 case SDL_KEYUP: keydown = false; break;
                 case SDL_QUIT: quit = true; break;
             }
@@ -634,7 +635,6 @@ tetris_update(Game *game, const uint8_t fps)
 
         uint32_t end = SDL_GetTicks();
         uint32_t elapsed_time = end - start;
-
         float mspd = (1.0f / (float)fps) * 1000.0f;
 
         if (elapsed_time < mspd) {
