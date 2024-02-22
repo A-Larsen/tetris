@@ -402,12 +402,14 @@ tetris_init(Game *game)
 
     if (game->lose_font == NULL) {
         fprintf(stderr, "could not open font %s\n", SDL_GetError());
+        exit(1);
     }
 
     game->ui_font = TTF_OpenFont("./fonts/NotoSansMono-Regular.ttf", 30);
 
     if (game->ui_font == NULL) {
         fprintf(stderr, "could not open font %s\n", SDL_GetError());
+        exit(1);
     }
 
 
