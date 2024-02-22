@@ -250,6 +250,7 @@ void
 tetris_clearRow(uint8_t *placed, uint8_t c)
 {
     uint8_t temp[ARENA_SIZE];
+
     memset(temp, 0, sizeof(uint8_t) * ARENA_SIZE);
     memcpy(temp, placed, sizeof(uint8_t) * ARENA_SIZE);
 
@@ -273,8 +274,8 @@ tetris_checkForRowClearing(uint8_t *placed)
 {
     uint8_t row_count = 0;
     uint8_t lines = 0;
-    for (uint8_t y = 0; y < ARENA_HEIGHT; ++y) {
 
+    for (uint8_t y = 0; y < ARENA_HEIGHT; ++y) {
         for (uint8_t x = 0; x < ARENA_WIDTH; ++x) {
             if (x == 0) row_count = 0;
 
@@ -489,6 +490,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
 
     tetris_drawTetromino(game->renderer, current_piece, piece_position,
             color);
+
     if (!keydown) fall_speed = 30;
 
     switch(key) {
@@ -498,6 +500,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
             if (!tetris_collisionCheck(game->placed, current_piece, check)) {
                 piece_position.x++;
             }
+
             break;
         }
 
