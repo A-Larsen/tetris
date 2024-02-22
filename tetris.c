@@ -383,8 +383,7 @@ tetris_pickPiece(uint8_t *piece, uint8_t *color)
 
     memcpy(piece, &tetris_tetrominos[id], sizeof(uint8_t) *
            PIECE_SIZE);
-    /* memcpy(piece, &tetris_tetrominos[PIECE_Z], sizeof(uint8_t) * */
-    /*        PIECE_SIZE); */
+
     *color = piece_colors[((*color) + 1) % 
                           PIECE_COLOR_SIZE];
 }
