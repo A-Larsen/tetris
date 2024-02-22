@@ -1,3 +1,4 @@
+#include <SDL2/SDL_error.h>
 #include <stdio.h>
 #include <stdbool.h>
 #include <stdint.h>
@@ -25,10 +26,10 @@
 #define ARENA_PADDING_TOP 2
 #define FONT "./fonts/NotoSansMono-Regular.ttf"
 
-#define END(check, str) \
+#define END(check, str1, str2) \
     if (check) {\
         assert(check); \
-        fprintf(stderr, "%s\n%s", str, SDL_GetError()); \
+        fprintf(stderr, "%s\n%s", str1, str2); \
         exit(1); \
     } \
 
@@ -73,7 +74,7 @@ draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text,
     SDL_Color font_color = {.r = 255, .g = 255, .b =255, .a = 255};
     SDL_Surface *surface = TTF_RenderText_Solid(font, text, font_color);
 
-    END(surface == NULL, "Could not create text surface\n");
+    END(surface == NULL, "Could not create text surface\n", SDL_GetError());
 
     SDL_Rect rect = {
         .x = point.x - (w / 2),
@@ -92,7 +93,7 @@ draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text,
 
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, surface);
 
-    END(texture == NULL, "Could not create texture");
+    END(texture == NULL, "Could not create texture", SDL_GetError());
 
     SDL_SetRenderDrawColor(renderer, 0, 0, 0, 255);
     SDL_RenderFillRect(renderer, &text_background);
@@ -395,30 +396,30 @@ tetris_init(Game *game)
     memset(game, 0, sizeof(Game));
 
     uint32_t flags = SDL_Init(SDL_INIT_VIDEO);
-    END(flags != 0, "Could not create texture");
+    END(flags != 0, "Could not create texture", SDL_GetError());
 
     int ttf_ok = TTF_Init();
 
-    END(ttf_ok != 0, "Could not initialize TTF");
+    END(ttf_ok != 0, "Could not initialize TTF", TTF_GetError());
 
     game->lose_font = TTF_OpenFont(FONT, 50);
 
-    END(game->lose_font == NULL, "Could not open font");
+    END(game->lose_font == NULL, "Could not open font", TTF_GetError());
 
     game->ui_font = TTF_OpenFont(FONT, 30);
 
-    END(game->ui_font == NULL, "Could not open font");
+    END(game->ui_font == NULL, "Could not open font", TTF_GetError());
 
     game->window = SDL_CreateWindow("tetris", SDL_WINDOWPOS_UNDEFINED, 
                      SDL_WINDOWPOS_UNDEFINED, SCREEN_WIDTH_PX, 
                      SCREEN_HEIGHT_PX, SDL_WINDOW_SHOWN);
 
-    END(game->window == NULL, "Could not create window");
+    END(game->window == NULL, "Could not create window", SDL_GetError());
 
     game->renderer = SDL_CreateRenderer(game->window, 0,
                                         SDL_RENDERER_SOFTWARE);
 
-    END(game->renderer == NULL, "Could not create renderer");
+    END(game->renderer == NULL, "Could not create renderer", SDL_GetError());
 }
 
 void
