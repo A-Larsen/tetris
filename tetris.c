@@ -27,7 +27,7 @@
 #define FONT "./fonts/NotoSansMono-Regular.ttf"
 
 #define END(check, str1, str2) \
-    if (check) {\
+    if (check) { \
         assert(check); \
         fprintf(stderr, "%s\n%s", str1, str2); \
         exit(1); \
