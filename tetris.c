@@ -547,8 +547,6 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
             Size size;
             tetris_getPieceSize(current_piece, &size);
             if (piece_position.y - size.h < 0) {
-                Size size;
-                tetris_getPieceSize(current_piece, &size);
                 tetris_addToPlaced(game->placed, current_piece,
                                    piece_position);
                 return 1;
