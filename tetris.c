@@ -243,6 +243,7 @@ tetris_printPlaced(uint8_t *placed)
 
         for (int x = 0; x < ARENA_WIDTH; ++x) {
             i = (y * ARENA_WIDTH) + x;
+
             printf("%d", placed[i]);
         }
 
