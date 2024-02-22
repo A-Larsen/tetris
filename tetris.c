@@ -551,7 +551,9 @@ updateMain(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
             piece_position.y++;
         } else{
             Size size;
+
             getPieceSize(current_piece, &size);
+
             if (piece_position.y + size.start_y - size.h < 0) {
                 addToPlaced(game->placed, current_piece, piece_position);
                 return UPDATE_LOSE;
