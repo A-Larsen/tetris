@@ -579,6 +579,7 @@ tetris_update(Game *game, const uint8_t fps)
     Update_callback update = update_main;
 
     while (!quit) {
+        uint32_t start = SDL_GetTicks();
 
         switch(update_id) {
             case 0: update = update_main; break;
@@ -599,7 +600,6 @@ tetris_update(Game *game, const uint8_t fps)
         SDL_RenderFillRect(game->renderer, &arena_background_rect);
 
         SDL_Event event;
-        uint32_t start = SDL_GetTicks();
         SDL_KeyCode key = 0;
 
         while(SDL_PollEvent(&event)) {
