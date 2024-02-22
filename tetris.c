@@ -392,7 +392,7 @@ pickPiece(uint8_t *piece, uint8_t *color)
 }
 
 void
-game_init(Game *game)
+Game_Init(Game *game)
 {
     memset(game, 0, sizeof(Game));
 
@@ -577,7 +577,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
 }
 
 void
-game_update(Game *game, const uint8_t fps)
+Game_Update(Game *game, const uint8_t fps)
 {
     uint64_t frame = 0;
     bool quit = false;
@@ -641,7 +641,7 @@ game_update(Game *game, const uint8_t fps)
 }
 
 void
-game_quit(Game *game)
+Game_Quit(Game *game)
 {
     TTF_CloseFont(game->lose_font);
     TTF_CloseFont(game->ui_font);
@@ -655,8 +655,8 @@ int
 main(void)
 {
     Game game;
-    game_init(&game);
-    game_update(&game, 60);
-    game_quit(&game);
+    Game_Init(&game);
+    Game_Update(&game, 60);
+    Game_Quit(&game);
     return 0;
 }
