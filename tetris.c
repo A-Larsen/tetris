@@ -22,8 +22,8 @@
 #define TETROMINOS_DATA_SIZE 16U
 #define BLOCK_SIZE_PX 50U
 #define TETROMINOS_COUNT 7U
-#define PIECE_COLOR_SIZE 4
-#define ARENA_PADDING_TOP 2
+#define PIECE_COLOR_SIZE 4U
+#define ARENA_PADDING_TOP 2U
 #define FONT "./fonts/NotoSansMono-Regular.ttf"
 
 #define END(check, str1, str2) \
