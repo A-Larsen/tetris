@@ -298,7 +298,7 @@ tetris_collisionCheck(uint8_t *placed, uint8_t *piece, SDL_Point position)
 {
     Size size; tetris_getPieceSize(piece, &size);
     uint8_t placed_pos = tetris_getPlacedPosition(position);
-    uint8_t collide = 0;
+    uint8_t collide = COLLIDE_NONE;
 
     if (position.x < -size.start_x) {
         collide |= COLLIDE_LEFT;
@@ -513,33 +513,36 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
             tetris_rotatePiece(current_piece, rotated);
             uint8_t collide = tetris_collisionCheck(game->placed,
                                                     rotated, piece_position);
-            if (collide == COLLIDE_LEFT) {
-                while(true) {
-                    SDL_Point pos = {
-                        .x = piece_position.x + 1,
-                        .y = piece_position.y,
-                    };
-                    collide = tetris_collisionCheck(game->placed, rotated,
-                                                            pos);
-                    if (!collide || (collide & COLLIDE_PIECE)) break;
+            bool canRotate = collide == COLLIDE_NONE;
 
+            while(collide == COLLIDE_LEFT) {
+                SDL_Point check = {
+                    .x = piece_position.x + 1,
+                    .y = piece_position.y,
+                };
+                collide = tetris_collisionCheck(game->placed, rotated,
+                                                        check);
+                if (collide == COLLIDE_NONE) {
+                    canRotate = true;
                     piece_position.x++;
+                    
                 }
-            } else if (collide == COLLIDE_RIGHT) {
-                while(true) {
-                    SDL_Point pos = {
-                        .x = piece_position.x - 1,
-                        .y = piece_position.y,
-                    };
-                    collide = tetris_collisionCheck(game->placed, rotated,
-                                                            pos);
-                    if (!collide || (collide & COLLIDE_PIECE)) break;
+            }
 
+            while(collide == COLLIDE_RIGHT) {
+                SDL_Point check = {
+                    .x = piece_position.x - 1,
+                    .y = piece_position.y,
+                };
+                collide = tetris_collisionCheck(game->placed, rotated,
+                                                        check);
+                if (collide == COLLIDE_NONE) {
+                    canRotate = true;
                     piece_position.x--;
                 }
             }
-            if (!collide)
 
+            if (canRotate)
                 memcpy(current_piece, rotated, sizeof(uint8_t) * PIECE_SIZE);
             break;
         }
