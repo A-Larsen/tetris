@@ -62,7 +62,6 @@ typedef struct _Game {
 typedef uint8_t (*Update_callback)(Game *game, uint64_t frame, SDL_KeyCode key,
                                    bool keydown);
 
-
 static void 
 draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text,
           SDL_Point point)
@@ -104,7 +103,6 @@ draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text,
     SDL_RenderCopy(renderer, texture, NULL, &rect);
     SDL_FreeSurface(surface);
     SDL_DestroyTexture(texture);
-
 }
 
 int
@@ -288,7 +286,6 @@ tetris_checkForRowClearing(uint8_t *placed)
 void
 tetris_addToPlaced(uint8_t *placed, uint8_t *piece, SDL_Point position)
 {
-
     uint8_t pos = tetris_getPlacedPosition(position);
 
     for (uint8_t i = 0; i < TETROMINOS_DATA_SIZE; ++i) {
@@ -489,6 +486,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
             }
             break;
         }
+
         case SDLK_a: {
             SDL_Point check = {.x = piece_position.x - 1,
                                .y = piece_position.y};
@@ -496,12 +494,15 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
             if (!tetris_collisionCheck(game->placed, current_piece, check)) {
                 piece_position.x--;
             }
+
             break;
         }
+
         case SDLK_s: {
             fall_speed = 1;
             break;
         }
+
         case SDLK_r: {
             uint8_t rotated[PIECE_SIZE];
             tetris_rotatePiece(current_piece, rotated);
@@ -538,6 +539,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
 
             if (canRotate)
                 memcpy(current_piece, rotated, sizeof(uint8_t) * PIECE_SIZE);
+
             break;
         }
     }
