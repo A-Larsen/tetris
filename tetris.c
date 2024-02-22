@@ -28,8 +28,8 @@ enum {PIECE_I, PIECE_J, PIECE_L, PIECE_O, PIECE_S, PIECE_T, PIECE_Z,
 enum {COLOR_RED, COLOR_GREEN, COLOR_BLUE, COLOR_ORANGE, COLOR_GREY,
       COLOR_BLACK, COLOR_SIZE};
 
-enum {COLLIDE_LEFT = 0b1000, COLLIDE_RIGHT = 0b0100, 
-      COLLIDE_TOP = 0b0010, COLLIDE_BOTTOM = 0b0001, COLLIDE_PIECE = 0b1111};
+enum {COLLIDE_NONE = 0, COLLIDE_LEFT = 1 << 0, COLLIDE_RIGHT = 1 << 1, 
+      COLLIDE_TOP = 1 << 2, COLLIDE_BOTTOM = 1 << 3, COLLIDE_PIECE = 1 << 4};
 
 typedef struct _Size {
     int w;
@@ -298,29 +298,32 @@ tetris_collisionCheck(uint8_t *placed, uint8_t *piece, SDL_Point position)
 {
     Size size; tetris_getPieceSize(piece, &size);
     uint8_t placed_pos = tetris_getPlacedPosition(position);
+    uint8_t collide = 0;
 
     if (position.x < -size.start_x) {
-        return COLLIDE_LEFT;
+        collide |= COLLIDE_LEFT;
     }
 
     if (position.x + size.start_x + size.w > ARENA_WIDTH) {
-        return COLLIDE_RIGHT;
+        collide |= COLLIDE_RIGHT;
     }
 
     if (position.y + size.start_y + size.h > ARENA_HEIGHT) {
-        return COLLIDE_BOTTOM;
+        collide |= COLLIDE_BOTTOM;
     }
 
     for (uint8_t y = 0; y < PIECE_HEIGHT; ++y) {
         for (uint8_t x = 0; x < PIECE_WIDTH; ++x) {
             uint8_t piece_i = y * PIECE_WIDTH + x;
             uint8_t placed_i = placed_pos + (y * ARENA_WIDTH + x);
-            if (piece[piece_i] && placed[placed_i]) 
-                return COLLIDE_PIECE;
+            if (piece[piece_i] && placed[placed_i]) {
+                collide |= COLLIDE_PIECE;
+                return collide;
+            }
         }
     }
 
-    return 0;
+    return collide;
 }
 
 void
@@ -510,33 +513,33 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
             tetris_rotatePiece(current_piece, rotated);
             uint8_t collide = tetris_collisionCheck(game->placed,
                                                     rotated, piece_position);
-            bool canRotate = true;
-            switch(collide) {
-                case COLLIDE_LEFT: {
-                    while(true) {
-                        piece_position.x++;
-                        if (!tetris_collisionCheck(game->placed, rotated,
-                                                   piece_position))
-                            break;
-                    }
-                    break;
+            if (collide == COLLIDE_LEFT) {
+                while(true) {
+                    SDL_Point pos = {
+                        .x = piece_position.x + 1,
+                        .y = piece_position.y,
+                    };
+                    collide = tetris_collisionCheck(game->placed, rotated,
+                                                            pos);
+                    if (!collide || (collide & COLLIDE_PIECE)) break;
+
+                    piece_position.x++;
                 }
-                case COLLIDE_RIGHT: {
-                    while(true) {
-                        piece_position.x--;
-                        if (!tetris_collisionCheck(game->placed, rotated,
-                                                   piece_position))
-                            break;
-                    }
-                    break;
-                }
-                case COLLIDE_BOTTOM:
-                case COLLIDE_PIECE: {
-                    canRotate = false;
-                    break;
+            } else if (collide == COLLIDE_RIGHT) {
+                while(true) {
+                    SDL_Point pos = {
+                        .x = piece_position.x - 1,
+                        .y = piece_position.y,
+                    };
+                    collide = tetris_collisionCheck(game->placed, rotated,
+                                                            pos);
+                    if (!collide || (collide & COLLIDE_PIECE)) break;
+
+                    piece_position.x--;
                 }
             }
-            if (canRotate)
+            if (!collide)
+
                 memcpy(current_piece, rotated, sizeof(uint8_t) * PIECE_SIZE);
             break;
         }
