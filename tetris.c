@@ -42,6 +42,8 @@ enum {COLOR_RED, COLOR_GREEN, COLOR_BLUE, COLOR_ORANGE, COLOR_GREY,
 enum {COLLIDE_NONE = 0, COLLIDE_LEFT = 1 << 0, COLLIDE_RIGHT = 1 << 1, 
       COLLIDE_TOP = 1 << 2, COLLIDE_BOTTOM = 1 << 3, COLLIDE_PIECE = 1 << 4};
 
+enum {UPDATE_MAIN, UPDATE_LOSE};
+
 typedef struct _Size {
     int w;
     int h;
@@ -443,21 +445,19 @@ drawPlaced(uint8_t *placed, SDL_Renderer *renderer) {
     }
 }
 
-// id of 1
 static uint8_t
-update_lose(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
+updateLose(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
 {
     SDL_Point point = {.x = ARENA_WIDTH_PX / 2 + ARENA_PADDING_PX,
                        .y = ARENA_HEIGHT_PX / 2};
 
     drawPlaced(game->placed, game->renderer);
     drawText(game->renderer, game->lose_font, "You Lose", point);
-    return 1;
+    return UPDATE_LOSE;
 }
 
-// id of 0
 static uint8_t
-update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
+updateMain(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
 {
     static SDL_Point piece_position = {.x = 0, .y = -1};
     static uint8_t fall_speed = 30;
@@ -554,7 +554,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
             getPieceSize(current_piece, &size);
             if (piece_position.y + size.start_y - size.h < 0) {
                 addToPlaced(game->placed, current_piece, piece_position);
-                return 1;
+                return UPDATE_LOSE;
             } else {
                 fall_speed = 30;
                 addToPlaced(game->placed, current_piece, piece_position);
@@ -573,7 +573,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
     sprintf(score_string, "score %ld", game->score);
     drawText(game->renderer, game->ui_font, score_string, point);
     drawPlaced(game->placed, game->renderer);
-    return 0;
+    return UPDATE_MAIN;
 }
 
 void
@@ -583,7 +583,7 @@ Game_Update(Game *game, const uint8_t fps)
     bool quit = false;
     bool keydown = false;
     uint8_t update_id = 0;
-    Update_callback update = update_main;
+    Update_callback update;
 
     SDL_Rect arena_background_rect = {
         .x = ARENA_PADDING_PX,
@@ -596,8 +596,8 @@ Game_Update(Game *game, const uint8_t fps)
         uint32_t start = SDL_GetTicks();
 
         switch (update_id) {
-            case 0: update = update_main; break;
-            case 1: update = update_lose; break;
+            case UPDATE_MAIN: update = updateMain; break;
+            case UPDATE_LOSE: update = updateLose; break;
         }
 
         setColor(game->renderer, COLOR_GREY);
