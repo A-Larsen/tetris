@@ -620,7 +620,6 @@ tetris_update(Game *game, const uint8_t fps)
 
         update_id = update(game, frame, key, keydown);
 
-
         uint32_t end = SDL_GetTicks();
         uint32_t elapsed_time = end - start;
 
