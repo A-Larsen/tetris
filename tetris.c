@@ -107,7 +107,7 @@ draw_text(SDL_Renderer *renderer, TTF_Font *font, const char *text,
 int
 tetris_findPoints(uint8_t level, uint8_t lines)
 {
-    switch(lines) {
+    switch (lines) {
         case 1: return 40 * (level + 1);
         case 2: return 100 * (level + 1);
         case 3: return 300 * (level + 1);
@@ -485,7 +485,7 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
 
     if (!keydown) fall_speed = 30;
 
-    switch(key) {
+    switch (key) {
         case SDLK_d: {
             SDL_Point check = {.x = piece_position.x + 1,
                                .y = piece_position.y};
@@ -525,14 +525,14 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
             memcpy(&check, &piece_position, sizeof(SDL_Point));
 
             if (collide == COLLIDE_LEFT) {
-                while(collide == COLLIDE_LEFT) {
+                while (collide == COLLIDE_LEFT) {
                     check.x++;
                     collide = tetris_collisionCheck(game->placed, rotated,
                                                             check);
                 }
 
             } else if (collide == COLLIDE_RIGHT) {
-                while(collide == COLLIDE_RIGHT) {
+                while (collide == COLLIDE_RIGHT) {
                     check.x--;
                     collide = tetris_collisionCheck(game->placed, rotated,
                                                             check);
@@ -563,7 +563,8 @@ update_main(Game *game, uint64_t frame, SDL_KeyCode key, bool keydown)
                 return 1;
             } else {
                 fall_speed = 30;
-                tetris_addToPlaced(game->placed, current_piece, piece_position);
+                tetris_addToPlaced(game->placed, current_piece,
+                                   piece_position);
                 tetris_pickPiece(current_piece, &color);
                 piece_position.y = -1;
             }
@@ -601,7 +602,7 @@ tetris_update(Game *game, const uint8_t fps)
     while (!quit) {
         uint32_t start = SDL_GetTicks();
 
-        switch(update_id) {
+        switch (update_id) {
             case 0: update = update_main; break;
             case 1: update = update_lose; break;
         }
@@ -614,13 +615,14 @@ tetris_update(Game *game, const uint8_t fps)
         SDL_Event event;
         SDL_KeyCode key = 0;
 
-        while(SDL_PollEvent(&event)) {
-            switch(event.type) {
+        while (SDL_PollEvent(&event)) {
+            switch (event.type) {
                 case SDL_KEYDOWN: {
                     if (event.key.repeat == 0) {
                       key = event.key.keysym.sym;
                       keydown = true;
                     }
+
                     break;
                 }
                 case SDL_KEYUP: keydown = false; break;
