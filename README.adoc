@@ -25,3 +25,8 @@ make
 | rotate piece | r
 | fast drop    | s
 |===
+
+== Dependencies
+
+- SDL2
+- SDL2 ttf
