@@ -28,5 +28,5 @@ make
 
 == Dependencies
 
-- SDL2
-- SDL2 ttf
+- lib SDL2
+- lib SDL2 ttf
