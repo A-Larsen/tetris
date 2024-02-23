@@ -1,0 +1,27 @@
+= TETRIS
+
+== Installing
+
+to build
+
+----
+make
+----
+
+== Running
+
+----
+./tetris
+----
+
+== Controls
+
+[%header, cols="1,1"]
+|===
+| action       | keyboard
+
+| move right   | d
+| move left    | a
+| rotate piece | r
+| fast drop    | s
+|===
