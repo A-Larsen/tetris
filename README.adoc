@@ -2,8 +2,6 @@
 
 == Installing
 
-to build
-
 ----
 make
 ----
