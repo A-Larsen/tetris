@@ -586,6 +586,7 @@ Game_Update(Game *game, const uint8_t fps)
     bool keydown = false;
     uint8_t update_id = 0;
     Update_callback update;
+    float mspd = (1.0f / (float)fps) * 1000.0f;
 
     SDL_Rect arena_background_rect = {
         .x = ARENA_PADDING_PX,
@@ -630,7 +631,6 @@ Game_Update(Game *game, const uint8_t fps)
 
         uint32_t end = SDL_GetTicks();
         uint32_t elapsed_time = end - start;
-        float mspd = (1.0f / (float)fps) * 1000.0f;
 
         if (elapsed_time < mspd) {
             elapsed_time = mspd - elapsed_time;
